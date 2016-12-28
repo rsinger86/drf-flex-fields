@@ -1,3 +1,3 @@
 from .serializers import FlexFieldsModelSerializer
 from .views import FlexFieldsModelViewSet
-import utils
+from .utils import *

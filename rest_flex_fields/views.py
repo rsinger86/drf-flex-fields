@@ -22,7 +22,7 @@ class FlexFieldsMixin(object):
 					set(expand.split(',')) & set(self.permit_list_expands) 
 				)
 
-		return super(DynamicFieldsModelMixin, self).list(request, *args, **kwargs)
+		return super(FlexFieldsMixin, self).list(request, *args, **kwargs)
 	
 	
 	def get_serializer_class(self):

@@ -6,5 +6,5 @@ setup(name='drf-flex-fields',
       description='Flexible, dynamic fields and nested models for Django REST Framework serializers.',
       author='Robert Singer',
       author_email='robertgsinger@gmail.com',
-      packages=['dynamic_serializer'],
+      packages=['rest_flex_fields'],
      )

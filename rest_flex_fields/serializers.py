@@ -31,7 +31,7 @@ class FlexFieldsModelSerializer(serializers.ModelSerializer):
                 name, next_expand_field_names, next_include_field_names, next_exclude_field_names
             )
         
-        super(DynamicFieldsModelSerializer, self).__init__(*args, **kwargs)
+        super(FlexFieldsModelSerializer, self).__init__(*args, **kwargs)
         
 
     def _make_expanded_field_serializer(self, name, nested_expands, nested_includes, nested_excludes):
