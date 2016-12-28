@@ -4,8 +4,10 @@ import importlib
 
 class FlexFieldsModelSerializer(serializers.ModelSerializer):
     """
-        A ModelSerializer that uses the expand argument to figure out
-        how to dynamically expand related fields.
+        A ModelSerializer that takes additional arguments for 
+        expand_fields, include_fields and exclude fields in order to
+        control which fields are displayed, and whether to replace simple values with
+        embedded serializations.
     """
     expandable_fields = {}
 
@@ -17,6 +19,9 @@ class FlexFieldsModelSerializer(serializers.ModelSerializer):
         expand_field_names, next_expand_field_names = self._split_levels(expand_field_names)
         include_field_names, next_include_field_names = self._split_levels(include_field_names)
         exclude_field_names, next_exclude_field_names = self._split_levels(exclude_field_names)
+
+        # Instantiate the superclass normally
+        super(FlexFieldsModelSerializer, self).__init__(*args, **kwargs)
 
         self._clean_fields(include_field_names, exclude_field_names)
         
@@ -31,10 +36,13 @@ class FlexFieldsModelSerializer(serializers.ModelSerializer):
                 name, next_expand_field_names, next_include_field_names, next_exclude_field_names
             )
         
-        super(FlexFieldsModelSerializer, self).__init__(*args, **kwargs)
+        
         
 
     def _make_expanded_field_serializer(self, name, nested_expands, nested_includes, nested_excludes):
+        """
+        Returns an instance of the dynamically created embedded serializer. 
+        """
         field_options = self.expandable_fields[name]
         serializer_class = field_options[0]
         serializer_settings = field_options[1]
@@ -58,6 +66,11 @@ class FlexFieldsModelSerializer(serializers.ModelSerializer):
 
     
     def _import_serializer_class(self, location):
+        """
+        Resolves dot-notation string reference to serializer class and returns actual class.
+
+        <app>.<SerializerName> will automatically be interpreted as <app>.serializers.<SerializerName>
+        """
         pieces = location.split('.')
         class_name = pieces.pop()
         if pieces[ len(pieces)-1 ] != 'serializers':
@@ -82,9 +95,8 @@ class FlexFieldsModelSerializer(serializers.ModelSerializer):
 
     def _split_levels(self, fields):
         """
-            Convert ['a', 'a.b', 'a.d', 'c']
-            into first_level_fields - ['a', 'c'] and
-            next_level_fields {'a': ['b', 'd']}
+            Convert dot-notation such as ['a', 'a.b', 'a.d', 'c'] into current-level fields ['a', 'c'] 
+            and next-level fields {'a': ['b', 'd']}.
         """
         first_level_fields = []
         next_level_fields = {}
