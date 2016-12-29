@@ -31,7 +31,7 @@ class FlexFieldsModelSerializer(serializers.ModelSerializer):
         for name in expand_field_names:
             if name not in self.expandable_fields:
                 continue
-
+            
             self.fields[name] = self._make_expanded_field_serializer(
                 name, next_expand_field_names, next_include_field_names, next_exclude_field_names
             )
@@ -87,10 +87,11 @@ class FlexFieldsModelSerializer(serializers.ModelSerializer):
 
             for field_name in existing - allowed:
                 self.fields.pop(field_name)
-
+        
         if exclude_fields:
             for exclude_field in exclude_fields:
-                self.fields.pop(exclude_field)
+                if exclude_field in self.fields:
+                    self.fields.pop(exclude_field)
 
 
     def _split_levels(self, fields):
