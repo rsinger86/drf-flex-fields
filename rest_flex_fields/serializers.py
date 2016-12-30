@@ -12,18 +12,15 @@ class FlexFieldsModelSerializer(serializers.ModelSerializer):
     expandable_fields = {}
 
     def __init__(self, *args, **kwargs):
-        expand_field_names = self._get_dynamic_setting(kwargs, 'expand_fields')
-        include_field_names = self._get_dynamic_setting(kwargs, 'include_fields')
-        exclude_field_names = self._get_dynamic_setting(kwargs, 'exclude_fields')
-
+        expand_field_names = self._get_dynamic_setting(kwargs, 'expand')
+        include_field_names = self._get_dynamic_setting(kwargs, {'class_property': 'include_fields', 'kwargs': 'fields'})
         expand_field_names, next_expand_field_names = self._split_levels(expand_field_names)
         include_field_names, next_include_field_names = self._split_levels(include_field_names)
-        exclude_field_names, next_exclude_field_names = self._split_levels(exclude_field_names)
 
         # Instantiate the superclass normally
         super(FlexFieldsModelSerializer, self).__init__(*args, **kwargs)
 
-        self._clean_fields(include_field_names, exclude_field_names)
+        self._clean_fields(include_field_names)
         
         if '~all' in expand_field_names:
             expand_field_names = self.expandable_fields.keys()
@@ -33,13 +30,11 @@ class FlexFieldsModelSerializer(serializers.ModelSerializer):
                 continue
             
             self.fields[name] = self._make_expanded_field_serializer(
-                name, next_expand_field_names, next_include_field_names, next_exclude_field_names
+                name, next_expand_field_names, next_include_field_names
             )
         
-        
-        
 
-    def _make_expanded_field_serializer(self, name, nested_expands, nested_includes, nested_excludes):
+    def _make_expanded_field_serializer(self, name, nested_expands, nested_includes):
         """
         Returns an instance of the dynamically created embedded serializer. 
         """
@@ -48,13 +43,10 @@ class FlexFieldsModelSerializer(serializers.ModelSerializer):
         serializer_settings = field_options[1]
         
         if name in nested_expands:
-            serializer_settings['expand_fields'] = nested_expands[name]
+            serializer_settings['expand'] = nested_expands[name]
 
         if name in nested_includes:
-            serializer_settings['include_fields'] = nested_includes[name]
-
-        if name in nested_excludes:
-            serializer_settings['exclude_fields'] = nested_excludes[name]
+            serializer_settings['fields'] = nested_includes[name]
 
         if serializer_settings.get('source') == name:
             del serializer_settings['source']
@@ -80,18 +72,18 @@ class FlexFieldsModelSerializer(serializers.ModelSerializer):
         return getattr(module, class_name)
 
 
-    def _clean_fields(self, include_fields, exclude_fields):
-        if include_fields:
-            allowed = set(include_fields)
-            existing = set(self.fields.keys())
 
-            for field_name in existing - allowed:
+    def _clean_fields(self, include_fields):
+        if include_fields:
+            allowed_fields = set(include_fields)
+            existing_fields = set(self.fields.keys())
+            existing_expandable_fields = set(self.expandable_fields.keys())
+
+            for field_name in existing_fields - allowed_fields:
                 self.fields.pop(field_name)
-        
-        if exclude_fields:
-            for exclude_field in exclude_fields:
-                if exclude_field in self.fields:
-                    self.fields.pop(exclude_field)
+
+            for field_name in existing_expandable_fields - allowed_fields:
+                self.expandable_fields.pop(field_name)
 
 
     def _split_levels(self, fields):
@@ -119,7 +111,7 @@ class FlexFieldsModelSerializer(serializers.ModelSerializer):
         return first_level_fields, next_level_fields
 
     
-    def _get_dynamic_setting(self, passed_settings, prop):
+    def _get_dynamic_setting(self, passed_settings, source):
         """ 
             Returns value of dynamic setting.
 
@@ -127,7 +119,13 @@ class FlexFieldsModelSerializer(serializers.ModelSerializer):
             (a) The originating request's GET params; it is then defined on the serializer class 
             (b) Manually when a nested serializer field is defined; it is then passed in the serializer class constructor
         """
-        if hasattr(self, prop):
-            return getattr(self, prop)
-        
-        return passed_settings.pop(prop, None)
+        if isinstance(source, dict):
+            if hasattr(self, source['class_property']):
+                return getattr(self, source['class_property'])
+            
+            return passed_settings.pop(source['kwargs'], None)
+        else:
+            if hasattr(self, source):
+                return getattr(self, source)
+            
+            return passed_settings.pop(source, None)

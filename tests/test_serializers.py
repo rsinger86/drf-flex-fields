@@ -38,77 +38,31 @@ class TestFlexFieldSerializer(unittest.TestCase):
 
     def test_basic_field_include(self):
         pet = Pet(
-            name='Remy', 
+            name='Garfield', 
             toys='paper ball, string', 
             species='cat',
             owner=Person(name='Fred')
         )
 
-        serializer = self.PetSerializer(pet, include_fields=['name', 'toys'])
-        self.assertEqual(serializer.data['toys'], 'paper ball, string')
-        self.assertEqual(serializer.data['name'], 'Remy')
-
-
-    def test_basic_field_exclude(self):
-        pet = Pet(
-            name='Remy', 
-            toys='paper ball, string', 
-            species='cat',
-            owner=Person(name='Fred')
-        )
-
-        serializer = self.PetSerializer(pet, exclude_fields=['species'])
+        serializer = self.PetSerializer(pet, fields=['name', 'toys'])
         self.assertEqual(serializer.data, {
-            'name' : 'Remy',
+            'name' : 'Garfield',
             'toys' : 'paper ball, string'
         })
 
 
     def test_nested_field_include(self):
         pet = Pet(
-            name='Remy', 
+            name='Garfield', 
             toys='paper ball, string', 
             species='cat',
             owner=Person(name='Fred', employer=Company(name='McDonalds'))
         )
 
-        serializer = self.PetSerializer(pet, expand_fields=['owner.employer'], include_fields=['owner.employer.name'])
+        serializer = self.PetSerializer(pet, expand=['owner.employer'], fields=['owner.employer.name'])
         self.assertEqual(serializer.data, {
             'owner' : {
                 'employer' : {
-                    'name' : 'McDonalds'
-                }    
-            }
-        })
-
-
-    def test_nested_field_exclude(self):
-        pet = Pet(
-            name='Remy', 
-            toys='paper ball, string', 
-            species='cat',
-            owner=Person(
-                name='Fred', 
-                hobbies='sailing',
-                employer=Company(name='McDonalds')
-            )
-        )
-
-        serializer = self.PetSerializer(
-            pet, 
-            expand_fields=['owner.employer'], 
-            exclude_fields=['toys', 'owner.name', 'owner.employer.public']
-        )
-
-        self.assertEqual(serializer.data, {
-            'name' : 'Remy',
-           #'toys' : 'paper ball, string',
-            'species' : 'cat',
-            'owner' : {
-               #'name' : 'Fred',
-                'hobbies' : 'sailing',
-                'employer' : {
-                   #'public' : False,
                     'name' : 'McDonalds'
                 }    
             }
@@ -116,4 +70,45 @@ class TestFlexFieldSerializer(unittest.TestCase):
 
 
     def test_basic_expand(self):
-        pass
+        pet = Pet(
+            name='Garfield', 
+            toys='paper ball, string', 
+            species='cat',
+            owner=Person(name='Fred', hobbies='sailing')
+        )
+
+        serializer = self.PetSerializer(pet, expand=['owner'])
+        self.assertEqual(serializer.data, {
+            'name' : 'Garfield',
+            'toys' : 'paper ball, string',
+            'species' : 'cat',
+            'owner' : {
+                'name' : 'Fred',
+                'hobbies' : 'sailing' 
+            }
+        })
+
+
+
+    def test_nested_expand(self):
+        pet = Pet(
+            name='Garfield', 
+            toys='paper ball, string', 
+            species='cat',
+            owner=Person(name='Fred', hobbies='sailing', employer=Company(name='McDonalds'))
+        )
+
+        serializer = self.PetSerializer(pet, expand=['owner.employer'])
+        self.assertEqual(serializer.data, {
+            'name' : 'Garfield',
+            'toys' : 'paper ball, string',
+            'species' : 'cat',
+            'owner' : {
+                'name' : 'Fred',
+                'hobbies' : 'sailing',
+                'employer' : {
+                    'public' : False,
+                    'name' : 'McDonalds'
+                }    
+            }
+        })

@@ -31,14 +31,12 @@ class FlexFieldsMixin(object):
 		""" Dynamically adds properties to serializer_class from request's GET params. """
 
 		expand = None
-		exclude = None
 		fields = None
 		is_valid_request = hasattr(self, 'request') and self.request.method == 'GET'
 
 		if not is_valid_request:
 			return self.serializer_class
 
-		exclude = self.request.query_params.get('exclude')
 		fields = self.request.query_params.get('fields')
 
 		if self._expandable:
@@ -47,9 +45,8 @@ class FlexFieldsMixin(object):
 			expand = self._force_expand
 		
 		options = {
-			'expand_fields': expand.split(',') if expand else None, 
-			'include_fields': fields.split(',') if fields else None, 
-			'exclude_fields': exclude.split(',') if exclude else None,
+			'expand': expand.split(',') if expand else None, 
+			'include_fields': fields.split(',') if fields else None,
 		}
 
 		return type('DynamicFieldsModelSerializer', (self.serializer_class,), options)
