@@ -14,7 +14,7 @@ Table of Contents:
 - [Setup](#setup)
 - [Dynamic Field Expansion](#dynamic-field-expansion)
   * [Deferred Fields](#deferred-fields)
-  * [Deep, Nested Expansion](#deep--nested-expansion)
+  * [Deep, Nested Expansion](#deep-nested-expansion)
   * [Configuration from Serializer Options](#configuration-from-serializer-options)
 - [Dynamically Setting Fields](#dynamically-setting-fields)
   * [From URL Parameters](#from-url-parameters)
