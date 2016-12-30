@@ -16,6 +16,7 @@ Table of Contents:
   * [Deferred Fields](#deferred-fields)
   * [Deep, Nested Expansion](#deep-nested-expansion)
   * [Configuration from Serializer Options](#configuration-from-serializer-options)
+  * [Default Limitation - No Expanding on List Endpoints](#default-limitation-no-expanding-on-list-endpoints)
 - [Dynamically Setting Fields](#dynamically-setting-fields)
   * [From URL Parameters](#from-url-parameters)
   * [From Serializer Options](#from-serializer-options)
@@ -168,7 +169,18 @@ class PersonSerializer(FlexFieldsModelSerializer):
         'country': (CountrySerializer, {'source': 'country', 'expand': ['states']})
     }
 ```
+## Default Limitation - No Expanding on List Endpoints
 
+By default, you can only expand fields when you are retrieving single objects, in order to protect yourself from careless clients. However, if you would like to make a field expandable even when listing collections of objects, you can add the field's name to the ```permit_list_expands``` property on the viewset. Just make sure you are wisely using ```select_related``` in the viewset's queryset. 
+
+Example:
+
+```
+class PersonViewSet(FlexFieldsModelSerializer):
+  permit_list_expands = ['employer']
+  queryset = models.Person.objects.all().select_related('employer')
+  serializer_class = PersonSerializer	
+```
 
 # Dynamically Setting Fields
 
