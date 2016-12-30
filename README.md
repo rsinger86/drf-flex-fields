@@ -3,7 +3,7 @@ Flexible, dynamic fields and nested models for Django REST Framework serializers
 
 # Overview
 
-FlexFields (DRF-FF) for [Django REST Framework](https://django-rest-framework.org) is a package designed to provide a common baseline of functionality for dynamically setting fields and nested models within DRF serializers. You can dynamically remove unneeded fields, including nested fields, via URL parameters (?fields=name,address.zip) or when configuring serializers. Additionally, you can dynamically expand fields from simple values to complex nested models, or treat fields as "deferred", and expand them on an as-needed basis.
+FlexFields (DRF-FF) for [Django REST Framework](https://django-rest-framework.org) is a package designed to provide a common baseline of functionality for dynamically setting fields and nested models within DRF serializers. You can dynamically remove unneeded fields, including nested fields, via URL parameters ```(?fields=name,address.zip)``` or when configuring serializers. Additionally, you can dynamically expand fields from simple values to complex nested models, or treat fields as "deferred", and expand them on an as-needed basis.
 
 This package is designed for simplicity and provides two classes - a viewset class and a serializer class - with minimal magic and entanglement with DRF's foundational classes. If you are familar with Django REST Framework, it shouldn't take you long to read over the code and see how it works. 
 
