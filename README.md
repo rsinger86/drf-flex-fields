@@ -196,7 +196,7 @@ Or, for more specificity, you can use dot-notation,  ```?fields=id,name,country.
 }
 ```
 ## From Serializer Options
-You could accomplish the same outcome as the example above by passing options to your serializers. With this approach, you lose runtime dynamicism, but gain the ability to re-use serializers, rather than creating a simplified copy of a serializer for the purposes of embedding it. 
+You could accomplish the same outcome as the example above by passing options to your serializers. With this approach, you lose runtime dynamism, but gain the ability to re-use serializers, rather than creating a simplified copy of a serializer for the purposes of embedding it. 
 ```
 from rest_flex_fields import FlexFieldsModelSerializer
 
@@ -244,3 +244,10 @@ However, you make the following request ```HTTP GET /person/13322?include=id,nam
 ```
 The ```include``` field takes precedence over ```expand```. That is, if a field is not among the set that is explicitly alllowed, it cannot be expanded. If such a conflict occurs, you will not pay for the extra database queries - the expanded field will be silently abandoned.  
 
+# Testing
+
+Tests are found in a simplified DRF project in the ```/tests``` folder. Install the project requirements and do ```./manage.py test``` to run them.
+
+# License
+
+See [License](LICENSE.md).
