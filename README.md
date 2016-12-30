@@ -237,8 +237,8 @@ print(serializer.data)
 }
 
  ```
- 
- # Combining Dynamically-Set Fields and Field Expansion
+
+# Combining Dynamically Set Fields and Field Expansion
  You may be wondering how things work if you use both the ```expand``` and ```fields``` option, and there is overlap. For example, your serialized person model may look like the following by default:
 ```
 {
