@@ -5,9 +5,9 @@ Flexible, dynamic fields and nested models for Django REST Framework serializers
 
 FlexFields (DRF-FF) for [Django REST Framework](https://django-rest-framework.org) is a package designed to provide a common baseline of functionality for dynamically setting fields and nested models within DRF serializers. You can dynamically remove unneeded fields, including nested fields, via URL parameters (?fields=name,address.zip) or when configuring serializers. Additionally, you can dynamically expand fields from simple values to complex nested models, or treat fields as "deferred", and expand them on an as-needed basis.
 
-There are similar packages, such as [Dynamic REST](https://github.com/AltSchool/dynamic-rest), which does what this package does and more, but you may not need all those bells and whistles. There is also the more basic [Dynamic Fields Mixin](https://github.com/dbrgn/drf-dynamic-fields), but it lacks functionality for field expansion and dot-notation field customiziation.
+This package is designed for simplicity and provides two classes - a viewset class and a serializer class - with minimal magic and entanglement with DRF's foundational classes. If you are familar with Django REST Framework, it shouldn't take you long to read over the code and see how it works. 
 
-This package provides two classes - a viewset class and a serializer class - with minimal magic and entanglement with DRF's foundational classes. 
+There are similar packages, such as the powerful [Dynamic REST](https://github.com/AltSchool/dynamic-rest), which does what this package does and more, but you may not need all those bells and whistles. There is also the more basic [Dynamic Fields Mixin](https://github.com/dbrgn/drf-dynamic-fields), but it lacks functionality for field expansion and dot-notation field customiziation.
 
 # Setup 
 
@@ -223,4 +223,24 @@ print(serializer.data)
 }
 
  ```
-            
+ 
+ # Combining Dynamically-Set Fields and Field Expansion
+ You may be wondering how things work if you use both the ```expand``` and ```fields``` option, and there is overlap. For example, your serialized person model may look like the following by default:
+```
+{
+  "id" : 13322
+  "name" : "John Doe",
+  "country" : {
+    "name" : "United States",
+  }
+}
+```
+However, you make the following request ```HTTP GET /person/13322?include=id,name&expand=country```. You will get the following back:
+```
+{
+  "id" : 13322
+  "name" : "John Doe"
+}
+```
+The ```include``` field takes precedence over ```expand```. That is, if a field is not among the set that is explicitly alllowed, it cannot be expanded. If such a conflict occurs, you will not pay for the extra database queries - the expanded field will be silently abandoned.  
+
