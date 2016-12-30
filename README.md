@@ -9,6 +9,20 @@ This package is designed for simplicity and provides two classes - a viewset cla
 
 There are similar packages, such as the powerful [Dynamic REST](https://github.com/AltSchool/dynamic-rest), which does what this package does and more, but you may not need all those bells and whistles. There is also the more basic [Dynamic Fields Mixin](https://github.com/dbrgn/drf-dynamic-fields), but it lacks functionality for field expansion and dot-notation field customiziation.
 
+Table of Contents:
+
+- [Setup](#setup)
+- [Dynamic Field Expansion](#dynamic-field-expansion)
+  * [Deferred Fields](#deferred-fields)
+  * [Deep, Nested Expansion](#deep--nested-expansion)
+  * [Configuration from Serializer Options](#configuration-from-serializer-options)
+- [Dynamically Setting Fields](#dynamically-setting-fields)
+  * [From URL Parameters](#from-url-parameters)
+  * [From Serializer Options](#from-serializer-options)
+- [Combining Dynamically-Set Fields and Field Expansion](#combining-dynamically-set-fields-and-field-expansion)
+- [Testing](#testing)
+- [License](#license)
+
 # Setup 
 
 To use this package's functionality your viewsets need to subclass ```FlexFieldsModelViewSet``` and your serializers need to subclass ```FlexFieldsModelSerializer```:
@@ -25,7 +39,7 @@ class PersonSerializer(FlexFieldsModelSerializer):
     model = Person
     fields = ('id', 'name', 'country', 'occupation')
 ```
-# Dynamic field expansion
+# Dynamic Field Expansion
 
 To define an expandable field, add it to the ```expandable_fields``` within your serializer:
 ```
@@ -82,7 +96,7 @@ class StateSerializer(FlexFieldsModelSerializer):
         model = State  
         fields = ['name', 'population']
         
-        
+          
 class CountrySerializer(FlexFieldsModelSerializer):
     class Meta:
         model = Company  
