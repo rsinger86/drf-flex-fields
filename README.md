@@ -16,7 +16,7 @@ Table of Contents:
   * [Deferred Fields](#deferred-fields)
   * [Deep, Nested Expansion](#deep-nested-expansion)
   * [Configuration from Serializer Options](#configuration-from-serializer-options)
-  * [Default Limitation - No Expanding on List Endpoints](#default-limitation-no-expanding-on-list-endpoints)
+  * [Default Limitation - No Expanding on List Endpoints](#default-limitation---no-expanding-on-list-endpoints)
 - [Dynamically Setting Fields](#dynamically-setting-fields)
   * [From URL Parameters](#from-url-parameters)
   * [From Serializer Options](#from-serializer-options)
