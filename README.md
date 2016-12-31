@@ -36,7 +36,7 @@ pip install drf-flex-fields
 To use this package's functionality, your viewsets need to subclass ```FlexFieldsModelViewSet``` and your serializers need to subclass ```FlexFieldsModelSerializer```:
 
 ```
-from rest_flex_fields import FlexFieldsModelViewSet, FlexFieldsModelViewSet
+from rest_flex_fields import FlexFieldsModelViewSet, FlexFieldsModelSerializer
 
 class PersonViewSet(FlexFieldsModelSerializer):
   queryset = models.Person.objects.all()
