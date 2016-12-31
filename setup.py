@@ -5,12 +5,12 @@ from os import path
 
 here = path.abspath(path.dirname(__file__))
 
-with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
+with open(path.join(here, 'README.txt'), encoding='utf-8') as f:
       long_description = f.read()
 
 
 setup(name='drf-flex-fields',
-      version='0.1.4',
+      version='0.1.6',
       description='Flexible, dynamic fields and nested models for Django REST Framework serializers.',
       author='Robert Singer',
       author_email='robertgsinger@gmail.com',
