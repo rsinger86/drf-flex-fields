@@ -3,7 +3,7 @@ Flexible, dynamic fields and nested models for Django REST Framework serializers
 
 # Overview
 
-FlexFields (DRF-FF) for [Django REST Framework](https://django-rest-framework.org) is a package designed to provide a common baseline of functionality for dynamically setting fields and nested models within DRF serializers. You can dynamically remove unneeded fields, including nested fields, via URL parameters ```(?fields=name,address.zip)``` or when configuring serializers. Additionally, you can dynamically expand fields from simple values to complex nested models, or treat fields as "deferred", and expand them on an as-needed basis.
+FlexFields (DRF-FF) for [Django REST Framework](https://django-rest-framework.org) is a package designed to provide a common baseline of functionality for dynamically setting fields and nested models within DRF serializers. To remove unneeded fields, you can dynamically set fields, including nested fields, via URL parameters ```(?fields=name,address.zip)``` or when configuring serializers. Additionally, you can dynamically expand fields from simple values to complex nested models, or treat fields as "deferred", and expand them on an as-needed basis.
 
 This package is designed for simplicity and provides two classes - a viewset class and a serializer class - with minimal magic and entanglement with DRF's foundational classes. If you are familar with Django REST Framework, it shouldn't take you long to read over the code and see how it works. 
 
@@ -26,7 +26,7 @@ Table of Contents:
 
 # Setup 
 
-To use this package's functionality your viewsets need to subclass ```FlexFieldsModelViewSet``` and your serializers need to subclass ```FlexFieldsModelSerializer```:
+To use this package's functionality, your viewsets need to subclass ```FlexFieldsModelViewSet``` and your serializers need to subclass ```FlexFieldsModelSerializer```:
 
 ```
 from rest_flex_fields import FlexFieldsModelViewSet, FlexFieldsModelViewSet
@@ -83,13 +83,13 @@ When you do a ```GET /person/13322?expand=country```, the response will change t
   "occupation" : "Programmer",
 }
 ```
-Notice how ```population``` was ommitted from the nested ```country``` object. This is because ```fields``` was set to ```['name']```. You will learn more about this later on. 
+Notice how ```population``` was ommitted from the nested ```country``` object. This is because ```fields``` was set to ```['name']``` when passed to the embedded ```CountrySerializer```. You will learn more about this later on. 
 
 ## Deferred Fields
-Alternatively, you could treat ```country``` as a so-called "deferred" field by not defining it among the default fields (where in this example, it is by default the related PK). 
+Alternatively, you could treat ```country``` as a "deferred" field by not defining it among the default fields. To make a field deferred, only define it within the serializer's ```expandable_fields```.
 
 ## Deep, Nested Expansion
-Let's say you add a nested model serializer to the country serializer above:
+Let's say you add ```StateSerializer``` as serializer nested inside the country serializer above:
 
 ```
 class StateSerializer(FlexFieldsModelSerializer):
@@ -134,7 +134,7 @@ Your default serialized response might be the following for ```person``` and ```
   "states" : "http://www.api.com/countries/12/states"
 }
 ```
-But if you do a ```GET /person/13322?expand=country.states```, it will be:
+But if you do a ```GET /person/13322?expand=country.states```, it would be:
 ```
 {
   "id" : 13322
