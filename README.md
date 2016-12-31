@@ -11,7 +11,8 @@ There are similar packages, such as the powerful [Dynamic REST](https://github.c
 
 Table of Contents:
 
-- [Setup](#setup)
+- [Installation](#installation)
+- [Basics](#basics)
 - [Dynamic Field Expansion](#dynamic-field-expansion)
   * [Deferred Fields](#deferred-fields)
   * [Deep, Nested Expansion](#deep-nested-expansion)
