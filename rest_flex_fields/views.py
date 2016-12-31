@@ -38,18 +38,18 @@ class FlexFieldsMixin(object):
 			return self.serializer_class
 
 		fields = self.request.query_params.get('fields')
-
+		fields = fields.split(',') if fields else None
+		
 		if self._expandable:
 			expand = self.request.query_params.get('expand')
+			expand = expand.split(',') if expand else None
 		elif len(self._force_expand) > 0:
 			expand = self._force_expand
 		
-		options = {
-			'expand': expand.split(',') if expand else None, 
-			'include_fields': fields.split(',') if fields else None,
-		}
-
-		return type('DynamicFieldsModelSerializer', (self.serializer_class,), options)
+		return type('DynamicFieldsModelSerializer', (self.serializer_class,), {
+			'expand': expand, 
+			'include_fields': fields,
+		})
 
 
 class FlexFieldsModelViewSet(FlexFieldsMixin, viewsets.ModelViewSet):

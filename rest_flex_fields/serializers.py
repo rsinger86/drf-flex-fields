@@ -16,17 +16,18 @@ class FlexFieldsModelSerializer(serializers.ModelSerializer):
         include_field_names = self._get_dynamic_setting(kwargs, {'class_property': 'include_fields', 'kwargs': 'fields'})
         expand_field_names, next_expand_field_names = self._split_levels(expand_field_names)
         include_field_names, next_include_field_names = self._split_levels(include_field_names)
+        self._expandable = self.expandable_fields.keys()
 
         # Instantiate the superclass normally
         super(FlexFieldsModelSerializer, self).__init__(*args, **kwargs)
 
         self._clean_fields(include_field_names)
-        
+
         if '~all' in expand_field_names:
             expand_field_names = self.expandable_fields.keys()
         
         for name in expand_field_names:
-            if name not in self.expandable_fields:
+            if name not in self._expandable:
                 continue
             
             self.fields[name] = self._make_expanded_field_serializer(
@@ -81,9 +82,9 @@ class FlexFieldsModelSerializer(serializers.ModelSerializer):
 
             for field_name in existing_fields - allowed_fields:
                 self.fields.pop(field_name)
-
-            for field_name in existing_expandable_fields - allowed_fields:
-                self.expandable_fields.pop(field_name)
+            
+            self._expandable = list( existing_expandable_fields & allowed_fields )
+  
 
 
     def _split_levels(self, fields):
