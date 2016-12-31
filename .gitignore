@@ -2,3 +2,5 @@
 build/
 local-development.txt
 local-dev.txt
+dist/
+MANIFEST

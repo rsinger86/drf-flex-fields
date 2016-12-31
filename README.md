@@ -24,7 +24,13 @@ Table of Contents:
 - [Testing](#testing)
 - [License](#license)
 
-# Setup 
+# Installation
+
+```
+pip install drf-flex-fields
+```
+
+# Basics
 
 To use this package's functionality, your viewsets need to subclass ```FlexFieldsModelViewSet``` and your serializers need to subclass ```FlexFieldsModelSerializer```:
 
@@ -40,6 +46,7 @@ class PersonSerializer(FlexFieldsModelSerializer):
     model = Person
     fields = ('id', 'name', 'country', 'occupation')
 ```
+
 # Dynamic Field Expansion
 
 To define an expandable field, add it to the ```expandable_fields``` within your serializer:
@@ -169,6 +176,7 @@ class PersonSerializer(FlexFieldsModelSerializer):
         'country': (CountrySerializer, {'source': 'country', 'expand': ['states']})
     }
 ```
+
 ## Default Limitation - No Expanding on List Endpoints
 
 By default, you can only expand fields when you are retrieving single objects, in order to protect yourself from careless clients. However, if you would like to make a field expandable even when listing collections of objects, you can add the field's name to the ```permit_list_expands``` property on the viewset. Just make sure you are wisely using ```select_related``` in the viewset's queryset. 
@@ -185,6 +193,7 @@ class PersonViewSet(FlexFieldsModelSerializer):
 # Dynamically Setting Fields
 
 ## From URL Parameters
+
 You can dynamically set fields, with the configuration originating from the URL parameters or serializer options. 
 
 Consider this as a default serialized response:
@@ -221,8 +230,11 @@ Or, for more specificity, you can use dot-notation,  ```?fields=id,name,country.
   }
 }
 ```
+
 ## From Serializer Options
+
 You could accomplish the same outcome as the example above by passing options to your serializers. With this approach, you lose runtime dynamism, but gain the ability to re-use serializers, rather than creating a simplified copy of a serializer for the purposes of embedding it. 
+
 ```
 from rest_flex_fields import FlexFieldsModelSerializer
 
@@ -240,18 +252,20 @@ class PersonSerializer(FlexFieldsModelSerializer):
 
 serializer = PersonSerializer(person, fields=["id", "name", "country.name"])
 print(serializer.data)
->>> {
+
+>>>{
   "id" : 13322
   "name" : "John Doe",
   "country" : {
     "name" : "United States",
   }
 }
-
- ```
+```
 
 # Combining Dynamically Set Fields and Field Expansion
+
  You may be wondering how things work if you use both the ```expand``` and ```fields``` option, and there is overlap. For example, your serialized person model may look like the following by default:
+
 ```
 {
   "id" : 13322
@@ -261,13 +275,16 @@ print(serializer.data)
   }
 }
 ```
+
 However, you make the following request ```HTTP GET /person/13322?include=id,name&expand=country```. You will get the following back:
+
 ```
 {
   "id" : 13322
   "name" : "John Doe"
 }
 ```
+
 The ```include``` field takes precedence over ```expand```. That is, if a field is not among the set that is explicitly alllowed, it cannot be expanded. If such a conflict occurs, you will not pay for the extra database queries - the expanded field will be silently abandoned.  
 
 # Testing
