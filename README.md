@@ -18,7 +18,7 @@ Table of Contents:
   * [Deep, Nested Expansion](#deep-nested-expansion)
   * [Configuration from Serializer Options](#configuration-from-serializer-options)
   * [Field Expansion on "List" Views](#field-expansion-on-list-views)
-  * [Use "~all" to Expand All Available Fields](#field-expansion-on-list-views)
+  * [Use "~all" to Expand All Available Fields](#use-all-to-expand-all-available-fields)
 - [Dynamically Setting Fields](#dynamically-setting-fields)
   * [From URL Parameters](#from-url-parameters)
   * [From Serializer Options](#from-serializer-options)
