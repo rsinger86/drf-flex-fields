@@ -17,7 +17,7 @@ Table of Contents:
   * [Deferred Fields](#deferred-fields)
   * [Deep, Nested Expansion](#deep-nested-expansion)
   * [Configuration from Serializer Options](#configuration-from-serializer-options)
-  * [Default Limitation - No Expanding on List Endpoints](#default-limitation---no-expanding-on-list-endpoints)
+  * [Field Expansion on "List" Views](#field-expansion-on-list-views)
 - [Dynamically Setting Fields](#dynamically-setting-fields)
   * [From URL Parameters](#from-url-parameters)
   * [From Serializer Options](#from-serializer-options)
@@ -178,17 +178,27 @@ class PersonSerializer(FlexFieldsModelSerializer):
     }
 ```
 
-## Default Limitation - No Expanding on List Endpoints
+## Field Expansion on "List" Views
 
-By default, you can only expand fields when you are retrieving single objects, in order to protect yourself from careless clients. However, if you would like to make a field expandable even when listing collections of objects, you can add the field's name to the ```permit_list_expands``` property on the viewset. Just make sure you are wisely using ```select_related``` in the viewset's queryset. 
+By default, you can only expand fields when you are retrieving single objects, in order to protect yourself from careless clients. However, if you would like to make a field expandable even when listing collections of objects, you can add the field's name to the ```permit_list_expands``` property on the viewset. Just make sure you are wisely using ```select_related``` in the viewset's queryset. You can take advantage of a utility function, ```is_expanded``` to adjust the queryset accordingly. 
+
 
 Example:
 
 ```
+from drf_flex_fields import is_expanded
+
 class PersonViewSet(FlexFieldsModelSerializer):
   permit_list_expands = ['employer']
   queryset = models.Person.objects.all().select_related('employer')
   serializer_class = PersonSerializer	
+  
+  def get_queryset(self):
+      if is_expanded(self.request, 'employer'):
+          models.Person.objects.all().select_related('employer')
+      return models.Person.objects.all()
+          
+  
 ```
 
 # Dynamically Setting Fields
