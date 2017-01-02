@@ -18,6 +18,7 @@ Table of Contents:
   * [Deep, Nested Expansion](#deep-nested-expansion)
   * [Configuration from Serializer Options](#configuration-from-serializer-options)
   * [Field Expansion on "List" Views](#field-expansion-on-list-views)
+  * [Use "~all" to Expand All Available Fields](#field-expansion-on-list-views)
 - [Dynamically Setting Fields](#dynamically-setting-fields)
   * [From URL Parameters](#from-url-parameters)
   * [From Serializer Options](#from-serializer-options)
@@ -41,12 +42,23 @@ from rest_flex_fields import FlexFieldsModelViewSet, FlexFieldsModelSerializer
 class PersonViewSet(FlexFieldsModelSerializer):
   queryset = models.Person.objects.all()
   serializer_class = PersonSerializer	
-  
+
+class CountrySerializer(FlexFieldsModelSerializer):
+  class Meta:
+    model = Country
+    fields = ('id', 'name', 'population')
+    
 class PersonSerializer(FlexFieldsModelSerializer):
   class Meta:
     model = Person
     fields = ('id', 'name', 'country', 'occupation')
+  
+  expandable_fields: {
+      'country': (CountrySerializer, {source: 'country'})
+  }
 ```
+
+Now you can make requests like ```GET /person?expand=country&fields=id,name,country``` to dynamically manipulate which fields are included, as well as expand primitive fields into nested objects. You can also use dot notation to control both the ```fields``` and ```expand``` settings at arbitrary levels of depth in your serialized responses. Read on to learn the details and see more complex examples.
 
 # Dynamic Field Expansion
 
@@ -200,6 +212,10 @@ class PersonViewSet(FlexFieldsModelSerializer):
           
   
 ```
+
+## Use "~all" to Expand All Available Fields
+
+You can set ```expand=~all``` to automatically expand all fields that are available for expansion. This will take effect for only the top-level serializer; if you need to also expand fields that are present on deeply nested models, then you will need to explicitly pass their values using dot notation. 
 
 # Dynamically Setting Fields
 
