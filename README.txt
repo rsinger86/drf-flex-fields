@@ -67,10 +67,10 @@ To use this package's functionality, your viewsets need to subclass
 
     from rest_flex_fields import FlexFieldsModelViewSet, FlexFieldsModelViewSet
 
-    class PersonViewSet(FlexFieldsModelSerializer):
+    class PersonViewSet(FlexFieldsModelViewSet):
       queryset = models.Person.objects.all()
-      serializer_class = PersonSerializer   
-      
+      serializer_class = PersonSerializer
+
     class PersonSerializer(FlexFieldsModelSerializer):
       class Meta:
         model = Person
@@ -86,15 +86,15 @@ within your serializer:
 
     class CountrySerializer(FlexFieldsModelSerializer):
         class Meta:
-            model = Company  
+            model = Company
             fields = ['name', 'population']
 
 
     class PersonSerializer(FlexFieldsModelSerializer):
         country = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-        
+
         class Meta:
-            model = Person  
+            model = Person
             fields = ['id', 'name', 'country', 'occupation']
 
         expandable_fields = {
@@ -148,24 +148,24 @@ country serializer above:
 
     class StateSerializer(FlexFieldsModelSerializer):
         class Meta:
-            model = State  
+            model = State
             fields = ['name', 'population']
-            
-              
+
+
     class CountrySerializer(FlexFieldsModelSerializer):
         class Meta:
-            model = Company  
+            model = Company
             fields = ['name', 'population']
 
         expandable_fields = {
             'states': (StateSerializer, {'source': 'country', 'many': True})
         }
-        
+
     class PersonSerializer(FlexFieldsModelSerializer):
         country = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-        
+
         class Meta:
-            model = Person  
+            model = Person
             fields = ['id', 'name', 'country', 'occupation']
 
         expandable_fields = {
@@ -226,9 +226,9 @@ within the embedded country serializer) by explicitly passing the
 ::
 
     class PersonSerializer(FlexFieldsModelSerializer):
-        
+
         class Meta:
-            model = Person  
+            model = Person
             fields = ['id', 'name', 'country', 'occupation']
 
         expandable_fields = {
@@ -252,7 +252,7 @@ Example:
     class PersonViewSet(FlexFieldsModelSerializer):
       permit_list_expands = ['employer']
       queryset = models.Person.objects.all().select_related('employer')
-      serializer_class = PersonSerializer   
+      serializer_class = PersonSerializer
 
 Dynamically Setting Fields
 ==========================
@@ -320,13 +320,13 @@ it.
 
     class CountrySerializer(FlexFieldsModelSerializer):
         class Meta:
-            model = Country  
+            model = Country
             fields = ['id', 'name', 'population']
-            
+
     class PersonSerializer(FlexFieldsModelSerializer):
         country: CountrySerializer(fields=['name'])
         class Meta:
-            model = Person  
+            model = Person
             fields = ['id', 'name', 'country', 'occupation', 'hobbies']
 
 
