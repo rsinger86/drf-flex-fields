@@ -1,18 +1,19 @@
+""" 
+	This class dynamically generates the serializer_class with dynamic parameters set from incoming GET params.
+	It also examines the request and allows certain fields to be expanded within the list view.
+"""
+
 from rest_framework import viewsets
 
 
 class FlexFieldsMixin(object):
-	""" 
-	    Dynamically generates the serializer_class with dynamic parameters set from incoming GET params.
-	"""
+
 
 	permit_list_expands = []
 	_expandable = True
 	_force_expand = []
 	    
 	def list(self, request, *args, **kwargs):
-		""" Examines request and allows certain fields to be expanded within the list view. """
-
 		self._expandable = False
 		expand = request.query_params.get('expand')
 
@@ -32,7 +33,7 @@ class FlexFieldsMixin(object):
 
 		expand = None
 		fields = None
-		is_valid_request = hasattr(self, 'request') and self.request.method == 'GET'
+		is_valid_request = hasattr(self, 'request') and self.request and self.request.method == 'GET'
 
 		if not is_valid_request:
 			return self.serializer_class

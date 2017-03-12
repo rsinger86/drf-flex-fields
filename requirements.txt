@@ -1,4 +1,4 @@
 Django==1.10.4
 argparse==1.2.1
-djangorestframework==3.5.3
+djangorestframework==3.6.2
 wsgiref==0.1.2
