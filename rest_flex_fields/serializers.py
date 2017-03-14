@@ -39,9 +39,10 @@ class FlexFieldsModelSerializer(serializers.ModelSerializer):
         """
         Returns an instance of the dynamically created embedded serializer. 
         """
+        import copy
         field_options = self.expandable_fields[name]
         serializer_class = field_options[0]
-        serializer_settings = field_options[1]
+        serializer_settings = copy.deepcopy(field_options[1])
         
         if name in nested_expands:
             serializer_settings['expand'] = nested_expands[name]

@@ -39,8 +39,9 @@ Table of Contents:
 -  `Deep, Nested Expansion <#deep-nested-expansion>`__
 -  `Configuration from Serializer
    Options <#configuration-from-serializer-options>`__
--  `Default Limitation - No Expanding on List
-   Endpoints <#default-limitation---no-expanding-on-list-endpoints>`__
+-  `Field Expansion on "List" Views <#field-expansion-on-list-views>`__
+-  `Use "~all" to Expand All Available
+   Fields <#use-all-to-expand-all-available-fields>`__
 -  `Dynamically Setting Fields <#dynamically-setting-fields>`__
 -  `From URL Parameters <#from-url-parameters>`__
 -  `From Serializer Options <#from-serializer-options>`__
@@ -65,16 +66,33 @@ To use this package's functionality, your viewsets need to subclass
 
 ::
 
-    from rest_flex_fields import FlexFieldsModelViewSet, FlexFieldsModelViewSet
+    from rest_flex_fields import FlexFieldsModelViewSet, FlexFieldsModelSerializer
 
     class PersonViewSet(FlexFieldsModelViewSet):
       queryset = models.Person.objects.all()
       serializer_class = PersonSerializer
 
+    class CountrySerializer(FlexFieldsModelSerializer):
+      class Meta:
+        model = Country
+        fields = ('id', 'name', 'population')
+
     class PersonSerializer(FlexFieldsModelSerializer):
       class Meta:
         model = Person
         fields = ('id', 'name', 'country', 'occupation')
+
+      expandable_fields: {
+          'country': (CountrySerializer, {source: 'country'})
+      }
+
+Now you can make requests like
+``GET /person?expand=country&fields=id,name,country`` to dynamically
+manipulate which fields are included, as well as expand primitive fields
+into nested objects. You can also use dot notation to control both the
+``fields`` and ``expand`` settings at arbitrary levels of depth in your
+serialized responses. Read on to learn the details and see more complex
+examples.
 
 Dynamic Field Expansion
 =======================
@@ -235,24 +253,41 @@ within the embedded country serializer) by explicitly passing the
             'country': (CountrySerializer, {'source': 'country', 'expand': ['states']})
         }
 
-Default Limitation - No Expanding on List Endpoints
----------------------------------------------------
+Field Expansion on "List" Views
+-------------------------------
 
 By default, you can only expand fields when you are retrieving single
 objects, in order to protect yourself from careless clients. However, if
 you would like to make a field expandable even when listing collections
 of objects, you can add the field's name to the ``permit_list_expands``
 property on the viewset. Just make sure you are wisely using
-``select_related`` in the viewset's queryset.
+``select_related`` in the viewset's queryset. You can take advantage of
+a utility function, ``is_expanded`` to adjust the queryset accordingly.
 
 Example:
 
 ::
 
+    from drf_flex_fields import is_expanded
+
     class PersonViewSet(FlexFieldsModelSerializer):
       permit_list_expands = ['employer']
       queryset = models.Person.objects.all().select_related('employer')
       serializer_class = PersonSerializer
+
+      def get_queryset(self):
+          if is_expanded(self.request, 'employer'):
+              models.Person.objects.all().select_related('employer')
+          return models.Person.objects.all()
+
+Use "~all" to Expand All Available Fields
+-----------------------------------------
+
+You can set ``expand=~all`` to automatically expand all fields that are
+available for expansion. This will take effect for only the top-level
+serializer; if you need to also expand fields that are present on deeply
+nested models, then you will need to explicitly pass their values using
+dot notation.
 
 Dynamically Setting Fields
 ==========================
