@@ -10,7 +10,7 @@ with open(path.join(here, 'README.txt'), encoding='utf-8') as f:
 
 
 setup(name='drf-flex-fields',
-      version='0.2.0',
+      version='0.2.1',
       description='Flexible, dynamic fields and nested models for Django REST Framework serializers.',
       author='Robert Singer',
       author_email='robertgsinger@gmail.com',
