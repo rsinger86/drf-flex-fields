@@ -17,6 +17,7 @@ class FlexFieldsModelSerializer(serializers.ModelSerializer):
         expand_field_names, next_expand_field_names = self._split_levels(expand_field_names)
         include_field_names, next_include_field_names = self._split_levels(include_field_names)
         self._expandable = self.expandable_fields.keys()
+        self.expanded_fields = []
 
         # Instantiate the superclass normally
         super(FlexFieldsModelSerializer, self).__init__(*args, **kwargs)
@@ -30,6 +31,7 @@ class FlexFieldsModelSerializer(serializers.ModelSerializer):
             if name not in self._expandable:
                 continue
             
+            self.expanded_fields.append(name)
             self.fields[name] = self._make_expanded_field_serializer(
                 name, next_expand_field_names, next_include_field_names
             )
