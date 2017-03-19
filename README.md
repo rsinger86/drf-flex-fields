@@ -1,5 +1,5 @@
 # Django REST - FlexFields
-Flexible, dynamic fields and nested models for Django REST Framework serializers.
+Flexible, dynamic fields and nested models for Django REST Framework serializers. Works with both Python 2 &3
 
 # Overview
 
@@ -12,6 +12,7 @@ There are similar packages, such as the powerful [Dynamic REST](https://github.c
 Table of Contents:
 
 - [Installation](#installation)
+- [Requirements](#requirements)
 - [Basics](#basics)
 - [Dynamic Field Expansion](#dynamic-field-expansion)
   * [Deferred Fields](#deferred-fields)
@@ -23,6 +24,7 @@ Table of Contents:
   * [From URL Parameters](#from-url-parameters)
   * [From Serializer Options](#from-serializer-options)
 - [Combining Dynamically-Set Fields and Field Expansion](#combining-dynamically-set-fields-and-field-expansion)
+- [Serializer Introspection](#serializer-introspection)
 - [Testing](#testing)
 - [License](#license)
 
@@ -31,6 +33,11 @@ Table of Contents:
 ```
 pip install drf-flex-fields
 ```
+
+# Requirements
+
+* Python (2.7, 3.2, 3.3, 3.4, 3.5)
+* Django (1.8, 1.9, 1.10)
 
 # Basics
 
@@ -200,7 +207,7 @@ Example:
 ```
 from drf_flex_fields import is_expanded
 
-class PersonViewSet(FlexFieldsModelSerializer):
+class PersonViewSet(FlexFieldsModelViewSet):
   permit_list_expands = ['employer']
   queryset = models.Person.objects.all().select_related('employer')
   serializer_class = PersonSerializer
@@ -313,6 +320,10 @@ However, you make the following request ```HTTP GET /person/13322?include=id,nam
 ```
 
 The ```include``` field takes precedence over ```expand```. That is, if a field is not among the set that is explicitly alllowed, it cannot be expanded. If such a conflict occurs, you will not pay for the extra database queries - the expanded field will be silently abandoned.
+
+# Serializer Introspection
+
+When using an instance of `FlexFieldsModelSerializer`, you can examine the property `expanded_fields` to discover which, if any, fields have been dynamically expanded. 
 
 # Testing
 
