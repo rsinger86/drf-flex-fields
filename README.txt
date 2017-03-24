@@ -104,7 +104,7 @@ within your serializer:
 
     class CountrySerializer(FlexFieldsModelSerializer):
         class Meta:
-            model = Company
+            model = Country
             fields = ['name', 'population']
 
 
@@ -172,7 +172,7 @@ country serializer above:
 
     class CountrySerializer(FlexFieldsModelSerializer):
         class Meta:
-            model = Company
+            model = Country
             fields = ['name', 'population']
 
         expandable_fields = {
