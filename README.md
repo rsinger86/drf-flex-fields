@@ -131,7 +131,7 @@ class CountrySerializer(FlexFieldsModelSerializer):
         fields = ['name', 'population']
 
     expandable_fields = {
-        'states': (StateSerializer, {'source': 'country', 'many': True})
+        'states': (StateSerializer, {'source': 'states', 'many': True})
     }
 
 class PersonSerializer(FlexFieldsModelSerializer):
