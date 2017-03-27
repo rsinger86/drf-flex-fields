@@ -73,7 +73,7 @@ To define an expandable field, add it to the ```expandable_fields``` within your
 ```
 class CountrySerializer(FlexFieldsModelSerializer):
     class Meta:
-        model = Company
+        model = Country
         fields = ['name', 'population']
 
 
@@ -127,11 +127,11 @@ class StateSerializer(FlexFieldsModelSerializer):
 
 class CountrySerializer(FlexFieldsModelSerializer):
     class Meta:
-        model = Company
+        model = Country
         fields = ['name', 'population']
 
     expandable_fields = {
-        'states': (StateSerializer, {'source': 'country', 'many': True})
+        'states': (StateSerializer, {'source': 'states', 'many': True})
     }
 
 class PersonSerializer(FlexFieldsModelSerializer):
