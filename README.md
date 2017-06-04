@@ -1,5 +1,5 @@
 # Django REST - FlexFields
-Flexible, dynamic fields and nested models for Django REST Framework serializers. Works with both Python 2 &3
+Flexible, dynamic fields and nested models for Django REST Framework serializers. Works with both Python 2 and 3.
 
 # Overview
 
