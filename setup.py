@@ -23,7 +23,7 @@ classifiers=[
     'Programming Language :: Python :: 3.5'
 ]
 setup(name='drf-flex-fields',
-      version='0.2.1',
+      version='0.2.2',
       description='Flexible, dynamic fields and nested models for Django REST Framework serializers.',
       author='Robert Singer',
       author_email='robertgsinger@gmail.com',
