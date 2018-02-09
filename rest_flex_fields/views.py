@@ -1,6 +1,6 @@
 """ 
-	This class dynamically generates the serializer_class with dynamic parameters set from incoming GET params.
-	It also examines the request and allows certain fields to be expanded within the list view.
+	This class helps provide control over which fields can be expanded when a 
+	collection is request via the list method.
 """
 
 from rest_framework import viewsets
@@ -12,6 +12,10 @@ class FlexFieldsMixin(object):
 	_force_expand = []
 	    
 	def list(self, request, *args, **kwargs):
+		"""
+			Prevent expansion by default; add fields to "permit_list_expands"
+			to whitelist particular fields.
+		"""
 		self._expandable = False
 		expand = request.query_params.get('expand')
 
