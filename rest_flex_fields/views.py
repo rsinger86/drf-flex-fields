@@ -7,8 +7,6 @@ from rest_framework import viewsets
 
 
 class FlexFieldsMixin(object):
-
-
 	permit_list_expands = []
 	_expandable = True
 	_force_expand = []
@@ -27,30 +25,13 @@ class FlexFieldsMixin(object):
 
 		return super(FlexFieldsMixin, self).list(request, *args, **kwargs)
 	
-	
-	def get_serializer_class(self):
-		""" Dynamically adds properties to serializer_class from request's GET params. """
 
-		expand = None
-		fields = None
-		is_valid_request = hasattr(self, 'request') and self.request and self.request.method == 'GET'
-
-		if not is_valid_request:
-			return self.serializer_class
-
-		fields = self.request.query_params.get('fields')
-		fields = fields.split(',') if fields else None
+	def get_serializer_context(self):
+		default_context = super(FlexFieldsMixin, self).get_serializer_context()
+		default_context['expandable'] = self._expandable
+		default_context['force_expand'] = self._force_expand
+		return default_context
 		
-		if self._expandable:
-			expand = self.request.query_params.get('expand')
-			expand = expand.split(',') if expand else None
-		elif len(self._force_expand) > 0:
-			expand = self._force_expand
-		
-		return type('DynamicFieldsModelSerializer', (self.serializer_class,), {
-			'expand': expand, 
-			'include_fields': fields,
-		})
 
 
 class FlexFieldsModelViewSet(FlexFieldsMixin, viewsets.ModelViewSet):
