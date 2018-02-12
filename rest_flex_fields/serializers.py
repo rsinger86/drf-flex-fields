@@ -68,7 +68,7 @@ class FlexFieldsModelSerializer(serializers.ModelSerializer):
     
     def _import_serializer_class(self, location):
         """
-        Resolves adot-notation string to serializer class.
+        Resolves a dot-notation string to serializer class.
         <app>.<SerializerName> will automatically be interpreted as:
         <app>.serializers.<SerializerName>
         """
