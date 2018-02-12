@@ -41,7 +41,7 @@ pip install drf-flex-fields
 
 # Basics
 
-To use this package's functionality, your viewsets need to subclass ```FlexFieldsModelViewSet``` and your serializers need to subclass ```FlexFieldsModelSerializer```:
+To use this package's functionality, your serializers need to subclass ```FlexFieldsModelSerializer```. If you would like built-in protection for controlling when clients are allowed to expand resources when listing resource collections, your viewsets need to subclass ```FlexFieldsModelViewSet```. 
 
 ```
 from rest_flex_fields import FlexFieldsModelViewSet, FlexFieldsModelSerializer
@@ -49,6 +49,8 @@ from rest_flex_fields import FlexFieldsModelViewSet, FlexFieldsModelSerializer
 class PersonViewSet(FlexFieldsModelViewSet):
   queryset = models.Person.objects.all()
   serializer_class = PersonSerializer
+  # Whitelist fields that  can be expanding when listing resources
+  permit_list_expands = ['country']
 
 class CountrySerializer(FlexFieldsModelSerializer):
   class Meta:
@@ -199,7 +201,7 @@ class PersonSerializer(FlexFieldsModelSerializer):
 
 ## Field Expansion on "List" Views
 
-By default, you can only expand fields when you are retrieving single objects, in order to protect yourself from careless clients. However, if you would like to make a field expandable even when listing collections of objects, you can add the field's name to the ```permit_list_expands``` property on the viewset. Just make sure you are wisely using ```select_related``` in the viewset's queryset. You can take advantage of a utility function, ```is_expanded``` to adjust the queryset accordingly.
+By default, you can only expand fields when you are retrieving single objects, in order to protect yourself from careless clients. However, if you would like to make a field expandable even when listing collections of objects, you can subclass ```FlexFieldsModelViewSet``` and add the field's name to the ```permit_list_expands``` property on the viewset. Just make sure you are wisely using ```select_related``` and ```prefect_related``` in the viewset's queryset. You can take advantage of a utility function, ```is_expanded``` to adjust the queryset accordingly.
 
 
 Example:
