@@ -2,7 +2,7 @@ Django REST - FlexFields
 ========================
 
 Flexible, dynamic fields and nested models for Django REST Framework
-serializers.
+serializers. Works with both Python 2 and 3.
 
 Overview
 ========
@@ -33,6 +33,7 @@ functionality for field expansion and dot-notation field customiziation.
 Table of Contents:
 
 -  `Installation <#installation>`__
+-  `Requirements <#requirements>`__
 -  `Basics <#basics>`__
 -  `Dynamic Field Expansion <#dynamic-field-expansion>`__
 -  `Deferred Fields <#deferred-fields>`__
@@ -47,6 +48,7 @@ Table of Contents:
 -  `From Serializer Options <#from-serializer-options>`__
 -  `Combining Dynamically-Set Fields and Field
    Expansion <#combining-dynamically-set-fields-and-field-expansion>`__
+-  `Serializer Introspection <#serializer-introspection>`__
 -  `Testing <#testing>`__
 -  `License <#license>`__
 
@@ -57,12 +59,17 @@ Installation
 
     pip install drf-flex-fields
 
+Requirements
+============
+
+-  Python (2.7, 3.2, 3.3, 3.4, 3.5)
+-  Django (1.8, 1.9, 1.10)
+
 Basics
 ======
 
 To use this package's functionality, your viewsets need to subclass
-``FlexFieldsModelViewSet`` and your serializers need to subclass
-``FlexFieldsModelSerializer``:
+your serializers need to subclass ``FlexFieldsModelSerializer``. Optionally, your viewsets should subclass ``FlexFieldsModelViewSet`` if you want built-in protection for controlling expanded fields when users request collections of resources.
 
 ::
 
@@ -71,6 +78,8 @@ To use this package's functionality, your viewsets need to subclass
     class PersonViewSet(FlexFieldsModelViewSet):
       queryset = models.Person.objects.all()
       serializer_class = PersonSerializer
+      # Whitelist fields that can be expanded when the "list" method is called
+      permit_list_expands = ['country']
 
     class CountrySerializer(FlexFieldsModelSerializer):
       class Meta:
@@ -176,7 +185,7 @@ country serializer above:
             fields = ['name', 'population']
 
         expandable_fields = {
-            'states': (StateSerializer, {'source': 'state', 'many': True})
+            'states': (StateSerializer, {'source': 'states', 'many': True})
         }
 
     class PersonSerializer(FlexFieldsModelSerializer):
@@ -256,12 +265,12 @@ within the embedded country serializer) by explicitly passing the
 Field Expansion on "List" Views
 -------------------------------
 
-By default, you can only expand fields when you are retrieving single
-objects, in order to protect yourself from careless clients. However, if
+By default, when subclassing FlexFieldsModelViewSet, you can only expand fields when you are retrieving single
+resources, in order to protect yourself from careless clients. However, if
 you would like to make a field expandable even when listing collections
-of objects, you can add the field's name to the ``permit_list_expands``
+of resources, you can add the field's name to the ``permit_list_expands``
 property on the viewset. Just make sure you are wisely using
-``select_related`` in the viewset's queryset. You can take advantage of
+``select_related`` and ``prefetch_related`` in the viewset's queryset. You can take advantage of
 a utility function, ``is_expanded`` to adjust the queryset accordingly.
 
 Example:
@@ -270,7 +279,7 @@ Example:
 
     from drf_flex_fields import is_expanded
 
-    class PersonViewSet(FlexFieldsModelSerializer):
+    class PersonViewSet(FlexFieldsModelViewSet):
       permit_list_expands = ['employer']
       queryset = models.Person.objects.all().select_related('employer')
       serializer_class = PersonSerializer
@@ -408,6 +417,13 @@ The ``include`` field takes precedence over ``expand``. That is, if a
 field is not among the set that is explicitly alllowed, it cannot be
 expanded. If such a conflict occurs, you will not pay for the extra
 database queries - the expanded field will be silently abandoned.
+
+Serializer Introspection
+========================
+
+When using an instance of ``FlexFieldsModelSerializer``, you can examine
+the property ``expanded_fields`` to discover which, if any, fields have
+been dynamically expanded.
 
 Testing
 =======
