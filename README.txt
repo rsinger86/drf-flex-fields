@@ -69,7 +69,8 @@ Basics
 ======
 
 To use this package's functionality, your viewsets need to subclass
-your serializers need to subclass ``FlexFieldsModelSerializer``. Optionally, your viewsets should subclass ``FlexFieldsModelViewSet`` if you want built-in protection for controlling expanded fields when users request collections of resources.
+``FlexFieldsModelViewSet`` and your serializers need to subclass
+``FlexFieldsModelSerializer``:
 
 ::
 
@@ -78,8 +79,6 @@ your serializers need to subclass ``FlexFieldsModelSerializer``. Optionally, you
     class PersonViewSet(FlexFieldsModelViewSet):
       queryset = models.Person.objects.all()
       serializer_class = PersonSerializer
-      # Whitelist fields that can be expanded when the "list" method is called
-      permit_list_expands = ['country']
 
     class CountrySerializer(FlexFieldsModelSerializer):
       class Meta:
@@ -265,12 +264,12 @@ within the embedded country serializer) by explicitly passing the
 Field Expansion on "List" Views
 -------------------------------
 
-By default, when subclassing FlexFieldsModelViewSet, you can only expand fields when you are retrieving single
-resources, in order to protect yourself from careless clients. However, if
+By default, you can only expand fields when you are retrieving single
+objects, in order to protect yourself from careless clients. However, if
 you would like to make a field expandable even when listing collections
-of resources, you can add the field's name to the ``permit_list_expands``
+of objects, you can add the field's name to the ``permit_list_expands``
 property on the viewset. Just make sure you are wisely using
-``select_related`` and ``prefetch_related`` in the viewset's queryset. You can take advantage of
+``select_related`` in the viewset's queryset. You can take advantage of
 a utility function, ``is_expanded`` to adjust the queryset accordingly.
 
 Example:
