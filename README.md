@@ -43,7 +43,7 @@ pip install drf-flex-fields
 
 To use this package's functionality, your serializers need to subclass ```FlexFieldsModelSerializer```. If you would like built-in protection for controlling when clients are allowed to expand resources when listing resource collections, your viewsets need to subclass ```FlexFieldsModelViewSet```. 
 
-```
+```python
 from rest_flex_fields import FlexFieldsModelViewSet, FlexFieldsModelSerializer
 
 class PersonViewSet(FlexFieldsModelViewSet):
@@ -72,7 +72,7 @@ Now you can make requests like ```GET /person?expand=country&fields=id,name,coun
 # Dynamic Field Expansion
 
 To define an expandable field, add it to the ```expandable_fields``` within your serializer:
-```
+```python
 class CountrySerializer(FlexFieldsModelSerializer):
     class Meta:
         model = Country
@@ -92,9 +92,9 @@ class PersonSerializer(FlexFieldsModelSerializer):
 ```
 
 If the default serialized response is the following:
-```
+```json
 {
-  "id" : 13322
+  "id" : 13322,
   "name" : "John Doe",
   "country" : 12,
   "occupation" : "Programmer",
@@ -102,9 +102,9 @@ If the default serialized response is the following:
 ```
 When you do a ```GET /person/13322?expand=country```, the response will change to:
 
-```
+```json
 {
-  "id" : 13322
+  "id" : 13322,
   "name" : "John Doe",
   "country" : {
     "name" : "United States"
@@ -120,7 +120,7 @@ Alternatively, you could treat ```country``` as a "deferred" field by not defini
 ## Deep, Nested Expansion
 Let's say you add ```StateSerializer``` as serializer nested inside the country serializer above:
 
-```
+```python
 class StateSerializer(FlexFieldsModelSerializer):
     class Meta:
         model = State
@@ -149,9 +149,9 @@ class PersonSerializer(FlexFieldsModelSerializer):
 ```
 
 Your default serialized response might be the following for ```person``` and ```country```, respectively:
-```
+```json
 {
-  "id" : 13322
+  "id" : 13322,
   "name" : "John Doe",
   "country" : 12,
   "occupation" : "Programmer",
@@ -164,9 +164,9 @@ Your default serialized response might be the following for ```person``` and ```
 }
 ```
 But if you do a ```GET /person/13322?expand=country.states```, it would be:
-```
+```json
 {
-  "id" : 13322
+  "id" : 13322,
   "name" : "John Doe",
   "occupation" : "Programmer",
   "country" : {
@@ -187,7 +187,7 @@ Please be kind to your database, as this could incur many additional queries. Th
 
 You could accomplish the same result (expanding the ```states``` field within the embedded country serializer) by explicitly passing the ```expand``` option within your serializer:
 
-```
+```python
 class PersonSerializer(FlexFieldsModelSerializer):
 
     class Meta:
@@ -206,7 +206,7 @@ By default, when subclassing ```FlexFieldsModelViewSet```, you can only expand f
 
 Example:
 
-```
+```python
 from drf_flex_fields import is_expanded
 
 class PersonViewSet(FlexFieldsModelViewSet):
@@ -233,9 +233,9 @@ You can set ```expand=~all``` to automatically expand all fields that are availa
 You can dynamically set fields, with the configuration originating from the URL parameters or serializer options.
 
 Consider this as a default serialized response:
-```
+```json
 {
-  "id" : 13322
+  "id" : 13322,
   "name" : "John Doe",
   "country" : {
     "name" : "United States",
@@ -246,9 +246,9 @@ Consider this as a default serialized response:
 }
 ```
 To whittle down the fields via URL parameters, simply add ```?fields=id,name,country``` to your requests to get back:
-```
+```json
 {
-  "id" : 13322
+  "id" : 13322,
   "name" : "John Doe",
   "country" : {
     "name" : "United States",
@@ -257,9 +257,9 @@ To whittle down the fields via URL parameters, simply add ```?fields=id,name,cou
 }
 ```
 Or, for more specificity, you can use dot-notation,  ```?fields=id,name,country.name```:
-```
+```json
 {
-  "id" : 13322
+  "id" : 13322,
   "name" : "John Doe",
   "country" : {
     "name" : "United States",
@@ -271,7 +271,7 @@ Or, for more specificity, you can use dot-notation,  ```?fields=id,name,country.
 
 You could accomplish the same outcome as the example above by passing options to your serializers. With this approach, you lose runtime dynamism, but gain the ability to re-use serializers, rather than creating a simplified copy of a serializer for the purposes of embedding it.
 
-```
+```python
 from rest_flex_fields import FlexFieldsModelSerializer
 
 class CountrySerializer(FlexFieldsModelSerializer):
@@ -290,7 +290,7 @@ serializer = PersonSerializer(person, fields=["id", "name", "country.name"])
 print(serializer.data)
 
 >>>{
-  "id" : 13322
+  "id" : 13322,
   "name" : "John Doe",
   "country" : {
     "name" : "United States",
@@ -302,9 +302,9 @@ print(serializer.data)
 
  You may be wondering how things work if you use both the ```expand``` and ```fields``` option, and there is overlap. For example, your serialized person model may look like the following by default:
 
-```
+```json
 {
-  "id" : 13322
+  "id" : 13322,
   "name" : "John Doe",
   "country" : {
     "name" : "United States",
@@ -314,9 +314,9 @@ print(serializer.data)
 
 However, you make the following request ```HTTP GET /person/13322?include=id,name&expand=country```. You will get the following back:
 
-```
+```json
 {
-  "id" : 13322
+  "id" : 13322,
   "name" : "John Doe"
 }
 ```
