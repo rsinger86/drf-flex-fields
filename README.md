@@ -239,7 +239,7 @@ Consider this as a default serialized response:
   "name" : "John Doe",
   "country" : {
     "name" : "United States",
-    "population: 330000000
+    "population": 330000000
   },
   "occupation" : "Programmer",
   "hobbies" : ["rock climbing", "sipping coffee"]
