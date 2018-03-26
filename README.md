@@ -158,7 +158,7 @@ Your default serialized response might be the following for ```person``` and ```
 }
 
 {
-  "id" : 12
+  "id" : 12,
   "name" : "United States",
   "states" : "http://www.api.com/countries/12/states"
 }
@@ -170,7 +170,7 @@ But if you do a ```GET /person/13322?expand=country.states```, it would be:
   "name" : "John Doe",
   "occupation" : "Programmer",
   "country" : {
-    "id" : 12
+    "id" : 12,
     "name" : "United States",
     "states" : [
       {
