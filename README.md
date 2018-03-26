@@ -242,7 +242,7 @@ Consider this as a default serialized response:
     "population: 330000000
   },
   "occupation" : "Programmer",
-  "hobbies" : ["rock climbing", "sipping coffee"}
+  "hobbies" : ["rock climbing", "sipping coffee"]
 }
 ```
 To whittle down the fields via URL parameters, simply add ```?fields=id,name,country``` to your requests to get back:
