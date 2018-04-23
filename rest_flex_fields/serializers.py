@@ -106,7 +106,7 @@ class FlexFieldsModelSerializer(serializers.ModelSerializer):
         if self.parent:
             return False
         
-        if not hasattr(self, 'context') or 'request' not in self.context:
+        if not hasattr(self, 'context') or not self.context.get('request', None):
             return False 
         
         return self.context['request'].method == 'GET'
