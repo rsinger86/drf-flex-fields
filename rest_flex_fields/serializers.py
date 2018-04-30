@@ -4,6 +4,7 @@ from rest_framework import serializers
 from rest_flex_fields import split_levels
 
 
+
 class FlexFieldsSerializerMixin(object):
     """
         A ModelSerializer that takes additional arguments for 
@@ -147,6 +148,8 @@ class FlexFieldsSerializerMixin(object):
         
         expand = self.context['request'].query_params.get('expand')
         return expand.split(',') if expand else None
+
+
 
 class FlexFieldsModelSerializer(FlexFieldsSerializerMixin, serializers.ModelSerializer):
     pass

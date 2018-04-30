@@ -5,7 +5,7 @@ Flexible, dynamic fields and nested models for Django REST Framework serializers
 
 FlexFields (DRF-FF) for [Django REST Framework](https://django-rest-framework.org) is a package designed to provide a common baseline of functionality for dynamically setting fields and nested models within DRF serializers. To remove unneeded fields, you can dynamically set fields, including nested fields, via URL parameters ```(?fields=name,address.zip)``` or when configuring serializers. Additionally, you can dynamically expand fields from simple values to complex nested models, or treat fields as "deferred", and expand them on an as-needed basis.
 
-This package is designed for simplicity and provides two classes - a viewset class and a serializer class - with minimal magic and entanglement with DRF's foundational classes. If you are familar with Django REST Framework, it shouldn't take you long to read over the code and see how it works.
+This package is designed for simplicity and provides two classes - a viewset class and a serializer class (or mixin) - with minimal magic and entanglement with DRF's foundational classes. Unless DRF makes significant changes to its serializers, you can count on this package to work (and if major changes are made, this package will be updated shortly thereafter). If you are familar with Django REST Framework, it shouldn't take you long to read over the code and see how it works.
 
 There are similar packages, such as the powerful [Dynamic REST](https://github.com/AltSchool/dynamic-rest), which does what this package does and more, but you may not need all those bells and whistles. There is also the more basic [Dynamic Fields Mixin](https://github.com/dbrgn/drf-dynamic-fields), but it lacks functionality for field expansion and dot-notation field customiziation.
 
@@ -25,6 +25,7 @@ Table of Contents:
   * [From Serializer Options](#from-serializer-options)
 - [Combining Dynamically-Set Fields and Field Expansion](#combining-dynamically-set-fields-and-field-expansion)
 - [Serializer Introspection](#serializer-introspection)
+- [Change Log](#changelog)
 - [Testing](#testing)
 - [License](#license)
 
@@ -37,11 +38,11 @@ pip install drf-flex-fields
 # Requirements
 
 * Python (2.7, 3.2, 3.3, 3.4, 3.5)
-* Django (1.8, 1.9, 1.10)
+* Django (1.8, 1.9, 1.10, 1.11, 2.0)
 
 # Basics
 
-To use this package's functionality, your serializers need to subclass ```FlexFieldsModelSerializer```. If you would like built-in protection for controlling when clients are allowed to expand resources when listing resource collections, your viewsets need to subclass ```FlexFieldsModelViewSet```. 
+To use this package's functionality, your serializers need to subclass ```FlexFieldsModelSerializer``` or use the provided `FlexFieldsSerializerMixin`. If you would like built-in protection for controlling when clients are allowed to expand resources when listing resource collections, your viewsets need to subclass ```FlexFieldsModelViewSet```. 
 
 ```python
 from rest_flex_fields import FlexFieldsModelViewSet, FlexFieldsModelSerializer
@@ -68,6 +69,8 @@ class PersonSerializer(FlexFieldsModelSerializer):
 ```
 
 Now you can make requests like ```GET /person?expand=country&fields=id,name,country``` to dynamically manipulate which fields are included, as well as expand primitive fields into nested objects. You can also use dot notation to control both the ```fields``` and ```expand``` settings at arbitrary levels of depth in your serialized responses. Read on to learn the details and see more complex examples.
+
+:heavy_check_mark: The examples below subclass `FlexFieldsModelSerializer`, but the same can be accomplished by mixing in `FlexFieldsSerializerMixin`, which is also importable from the same `rest_flex_fields` package.
 
 # Dynamic Field Expansion
 
@@ -326,6 +329,11 @@ The ```include``` field takes precedence over ```expand```. That is, if a field 
 # Serializer Introspection
 
 When using an instance of `FlexFieldsModelSerializer`, you can examine the property `expanded_fields` to discover which, if any, fields have been dynamically expanded. 
+
+# Changelog <a id="changelog"></a>
+
+## 0.3.3 (April 2018)
+* Exposes `FlexFieldsSerializerMixin` in addition to `FlexFieldsModelSerializer`. Thanks @jsatt!
 
 # Testing
 
