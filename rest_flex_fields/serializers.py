@@ -4,8 +4,7 @@ from rest_framework import serializers
 from rest_flex_fields import split_levels
 
 
-
-class FlexFieldsModelSerializer(serializers.ModelSerializer):
+class FlexFieldsSerializerMixin(object):
     """
         A ModelSerializer that takes additional arguments for 
         "fields" and "include" in order to
@@ -22,7 +21,7 @@ class FlexFieldsModelSerializer(serializers.ModelSerializer):
             'fields': kwargs.pop('fields', None) 
         }
 
-        super(FlexFieldsModelSerializer, self).__init__(*args, **kwargs)
+        super(FlexFieldsSerializerMixin, self).__init__(*args, **kwargs)
         expand = self._get_expand_input(passed)
         fields = self._get_fields_input(passed)
         expand_field_names, next_expand_field_names = split_levels(expand)
@@ -148,3 +147,6 @@ class FlexFieldsModelSerializer(serializers.ModelSerializer):
         
         expand = self.context['request'].query_params.get('expand')
         return expand.split(',') if expand else None
+
+class FlexFieldsModelSerializer(FlexFieldsSerializerMixin, serializers.ModelSerializer):
+    pass
