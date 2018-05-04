@@ -332,6 +332,9 @@ When using an instance of `FlexFieldsModelSerializer`, you can examine the prope
 
 # Changelog <a id="changelog"></a>
 
+## 0.3.4 (May 2018)
+* Handle case where `request` is `None` when accessing request object from serializer. Thanks @jsatt!
+
 ## 0.3.3 (April 2018)
 * Exposes `FlexFieldsSerializerMixin` in addition to `FlexFieldsModelSerializer`. Thanks @jsatt!
 
