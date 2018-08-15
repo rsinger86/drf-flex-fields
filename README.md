@@ -48,24 +48,24 @@ To use this package's functionality, your serializers need to subclass ```FlexFi
 from rest_flex_fields import FlexFieldsModelViewSet, FlexFieldsModelSerializer
 
 class PersonViewSet(FlexFieldsModelViewSet):
-  queryset = models.Person.objects.all()
-  serializer_class = PersonSerializer
-  # Whitelist fields that  can be expanding when listing resources
-  permit_list_expands = ['country']
+    queryset = models.Person.objects.all()
+    serializer_class = PersonSerializer
+    # Whitelist fields that  can be expanding when listing resources
+    permit_list_expands = ['country']
 
 class CountrySerializer(FlexFieldsModelSerializer):
-  class Meta:
-    model = Country
-    fields = ('id', 'name', 'population')
+    class Meta:
+        model = Country
+        fields = ('id', 'name', 'population')
 
 class PersonSerializer(FlexFieldsModelSerializer):
-  class Meta:
-    model = Person
-    fields = ('id', 'name', 'country', 'occupation')
+    class Meta:
+        model = Person
+        fields = ('id', 'name', 'country', 'occupation')
 
-  expandable_fields: {
-      'country': (CountrySerializer, {source: 'country'})
-  }
+    expandable_fields: {
+        'country': (CountrySerializer, {source: 'country'})
+    }
 ```
 
 Now you can make requests like ```GET /person?expand=country&fields=id,name,country``` to dynamically manipulate which fields are included, as well as expand primitive fields into nested objects. You can also use dot notation to control both the ```fields``` and ```expand``` settings at arbitrary levels of depth in your serialized responses. Read on to learn the details and see more complex examples.
@@ -213,14 +213,14 @@ Example:
 from drf_flex_fields import is_expanded
 
 class PersonViewSet(FlexFieldsModelViewSet):
-  permit_list_expands = ['employer']
-  queryset = models.Person.objects.all().select_related('employer')
-  serializer_class = PersonSerializer
+    permit_list_expands = ['employer']
+    queryset = models.Person.objects.all().select_related('employer')
+    serializer_class = PersonSerializer
 
-  def get_queryset(self):
-      if is_expanded(self.request, 'employer'):
-          models.Person.objects.all().select_related('employer')
-      return models.Person.objects.all()
+    def get_queryset(self):
+        if is_expanded(self.request, 'employer'):
+            models.Person.objects.all().select_related('employer')
+        return models.Person.objects.all()
 
 
 ```
