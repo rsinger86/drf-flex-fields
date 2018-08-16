@@ -53,6 +53,16 @@ class PetViewTests(APITestCase):
         })
 
 
+    def test_retrieve_omit(self):
+        url = reverse('pet-detail', args=[self.pet.id])
+        response = self.client.get(url+'?omit=toys,owner',format='json')
+
+        self.assertEqual(response.data, {
+            'name' : 'Garfield',
+            'species' : 'cat'
+        })
+
+
     def test_retrieve_sparse_and_deep_expanded(self):
         url = reverse('pet-detail', args=[self.pet.id])
         url = url+'?fields=owner&expand=owner.employer'
@@ -66,6 +76,23 @@ class PetViewTests(APITestCase):
                     'public' : False,
                     'name' : 'McDonalds'
                 }    
+            }
+        })
+
+
+    def test_retrieve_omit_and_deep_expanded(self):
+        url = reverse('pet-detail', args=[self.pet.id])
+        url = url+'?omit=species,toys,owner.employer.public&expand=owner.employer'
+        response = self.client.get(url, format='json')
+
+        self.assertEqual(response.data, {
+            'name' : 'Garfield',
+            'owner' : {
+                'name' : 'Fred',
+                'hobbies' : 'sailing',
+                'employer' : {
+                    'name' : 'McDonalds'
+                }
             }
         })
 

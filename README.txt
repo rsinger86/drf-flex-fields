@@ -103,11 +103,11 @@ resource collections, your viewsets need to subclass
       }
 
 Now you can make requests like
-``GET /person?expand=country&fields=id,name,country`` to dynamically
-manipulate which fields are included, as well as expand primitive fields
-into nested objects. You can also use dot notation to control both the
-``fields`` and ``expand`` settings at arbitrary levels of depth in your
-serialized responses. Read on to learn the details and see more complex
+``GET /person?expand=country&fields=id,name,country&omit=occupation`` to
+dynamically manipulate which fields are included, as well as expand primitive
+fields into nested objects. You can also use dot notation to control the
+``fields``, ``omit`` and ``expand`` settings at arbitrary levels of depth in
+your serialized responses. Read on to learn the details and see more complex
 examples.
 
 :heavy\_check\_mark: The examples below subclass
@@ -165,7 +165,7 @@ change to:
       "occupation" : "Programmer",
     }
 
-Notice how ``population`` was ommitted from the nested ``country``
+Notice how ``population`` was omitted from the nested ``country``
 object. This is because ``fields`` was set to ``['name']`` when passed
 to the embedded ``CountrySerializer``. You will learn more about this
 later on.
@@ -273,6 +273,9 @@ within the embedded country serializer) by explicitly passing the
         expandable_fields = {
             'country': (CountrySerializer, {'source': 'country', 'expand': ['states']})
         }
+
+Similarly if you wish to omit fields from the serializer's options, you can
+replace 'expand' with 'exclude'
 
 Field Expansion on "List" Views
 -------------------------------
