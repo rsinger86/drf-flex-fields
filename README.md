@@ -63,8 +63,8 @@ class PersonSerializer(FlexFieldsModelSerializer):
         model = Person
         fields = ('id', 'name', 'country', 'occupation')
 
-    expandable_fields: {
-        'country': (CountrySerializer, {source: 'country'})
+    expandable_fields = {
+        'country': (CountrySerializer, {'source': 'country'})
     }
 ```
 
