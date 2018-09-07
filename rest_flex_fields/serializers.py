@@ -71,27 +71,13 @@ class FlexFieldsSerializerMixin(object):
         if serializer_settings.get('source') == name:
             del serializer_settings['source']
             
-        if type(serializer_class) == str:
-            serializer_class = self._import_serializer_class(serializer_class)
+        serializer_class = import_serializer_class(serializer_class)
 
         if serializer_settings.pop('include_context', False):
             serializer_settings['context'] = self.context
 
         return serializer_class(**serializer_settings)
 
-    def _import_serializer_class(self, location):
-        """
-        Resolves a dot-notation string to serializer class.
-        <app>.<SerializerName> will automatically be interpreted as:
-        <app>.serializers.<SerializerName>
-        """
-        pieces = location.split('.')
-        class_name = pieces.pop()
-        if pieces[ len(pieces)-1 ] != 'serializers':
-            pieces.append('serializers')
-
-        module = importlib.import_module( '.'.join(pieces) ) 
-        return getattr(module, class_name)
 
     def _get_expandable_names(self, sparse_field_names, omit_field_names):
         field_names = set(self.fields.keys())
@@ -169,6 +155,28 @@ class FlexFieldsSerializerMixin(object):
         
         expand = self.context['request'].query_params.get('expand')
         return expand.split(',') if expand else None
+
+
+def import_serializer_class(location):
+    """
+    Resolves a dot-notation string to serializer class.
+    <app>.<SerializerName> will automatically be interpreted as:
+    <app>.serializers.<SerializerName>
+    """
+    if not isinstance(location, str):
+        return location
+
+    pieces = location.split('.')
+    class_name = pieces.pop()
+
+    if not pieces:
+        raise ValueError('Please ensure class string is fully qualified with its containing module')
+
+    if pieces[len(pieces) - 1] != 'serializers':
+        pieces.append('serializers')
+
+    module = importlib.import_module( '.'.join(pieces) )
+    return getattr(module, class_name)
 
 
 class FlexFieldsModelSerializer(FlexFieldsSerializerMixin, serializers.ModelSerializer):
