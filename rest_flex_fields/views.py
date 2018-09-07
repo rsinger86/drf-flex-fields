@@ -20,7 +20,7 @@ class FlexFieldsMixin(object):
 		expand = request.query_params.get('expand')
 
 		if len(self.permit_list_expands) > 0 and expand:
-			if expand == '~all':
+			if expand == '*':
 				self._force_expand = self.permit_list_expands
 			else:
 				self._force_expand = list( 
@@ -35,7 +35,6 @@ class FlexFieldsMixin(object):
 		default_context['expandable'] = self._expandable
 		default_context['force_expand'] = self._force_expand
 		return default_context
-		
 
 
 class FlexFieldsModelViewSet(FlexFieldsMixin, viewsets.ModelViewSet):

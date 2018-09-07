@@ -43,7 +43,7 @@ Table of Contents:
 -  `Configuration from Serializer
    Options <#configuration-from-serializer-options>`__
 -  `Field Expansion on "List" Views <#field-expansion-on-list-views>`__
--  `Use "~all" to Expand All Available
+-  `Use "*" to Expand All Available
    Fields <#use-all-to-expand-all-available-fields>`__
 -  `Dynamically Setting Fields <#dynamically-setting-fields>`__
 -  `From URL Parameters <#from-url-parameters>`__
@@ -305,10 +305,10 @@ Example:
               models.Person.objects.all().select_related('employer')
           return models.Person.objects.all()
 
-Use "~all" to Expand All Available Fields
+Use "*" to Expand All Available Fields
 -----------------------------------------
 
-You can set ``expand=~all`` to automatically expand all fields that are
+You can set ``expand=*`` to automatically expand all fields that are
 available for expansion. This will take effect for only the top-level
 serializer; if you need to also expand fields that are present on deeply
 nested models, then you will need to explicitly pass their values using

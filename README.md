@@ -19,7 +19,7 @@ Table of Contents:
   * [Deep, Nested Expansion](#deep-nested-expansion)
   * [Configuration from Serializer Options](#configuration-from-serializer-options)
   * [Field Expansion on "List" Views](#field-expansion-on-list-views)
-  * [Use "~all" to Expand All Available Fields](#use-all-to-expand-all-available-fields)
+  * [Use "*" to Expand All Available Fields](#use-all-to-expand-all-available-fields)
 - [Dynamically Setting Fields](#dynamically-setting-fields)
   * [From URL Parameters](#from-url-parameters)
   * [From Serializer Options](#from-serializer-options)
@@ -227,9 +227,9 @@ class PersonViewSet(FlexFieldsModelViewSet):
 
 ```
 
-## Use "~all" to Expand All Available Fields
+## Use "*" to Expand All Available Fields
 
-You can set ```expand=~all``` to automatically expand all fields that are available for expansion. This will take effect for only the top-level serializer; if you need to also expand fields that are present on deeply nested models, then you will need to explicitly pass their values using dot notation.
+You can set ```expand=*``` to automatically expand all fields that are available for expansion. This will take effect for only the top-level serializer; if you need to also expand fields that are present on deeply nested models, then you will need to explicitly pass their values using dot notation.
 
 # Dynamically Setting Fields
 

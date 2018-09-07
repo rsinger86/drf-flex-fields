@@ -7,7 +7,7 @@ from rest_flex_fields import split_levels
 
 class FlexFieldsSerializerMixin(object):
     """
-        A ModelSerializer that takes additional arguments for 
+        A ModelSerializer that takes additional arguments for
         "fields" and "include" in order to
         control which fields are displayed, and whether to replace simple values with
         complex, nested serializations.
@@ -17,7 +17,7 @@ class FlexFieldsSerializerMixin(object):
     def __init__(self, *args, **kwargs):
         self.expanded_fields = []
 
-        passed = { 
+        passed = {
             'expand': kwargs.pop('expand', None),
             'fields': kwargs.pop('fields', None),
             'omit': kwargs.pop('omit', [])
@@ -37,9 +37,9 @@ class FlexFieldsSerializerMixin(object):
 
         expandable_fields_names = self._get_expandable_names(sparse_field_names, omit_field_names)
 
-        if '~all' in expand_field_names:
+        if '*' in expand_field_names:
             expand_field_names = self.expandable_fields.keys()
-        
+
         for name in expand_field_names:
             if name not in expandable_fields_names:
                 continue
@@ -72,11 +72,13 @@ class FlexFieldsSerializerMixin(object):
             del serializer_settings['source']
             
         if type(serializer_class) == str:
-            serializer_class = self._import_serializer_class(serializer_class) 
-        
+            serializer_class = self._import_serializer_class(serializer_class)
+
+        if serializer_settings.pop('include_context', False):
+            serializer_settings['context'] = self.context
+
         return serializer_class(**serializer_settings)
 
-    
     def _import_serializer_class(self, location):
         """
         Resolves a dot-notation string to serializer class.
@@ -91,7 +93,6 @@ class FlexFieldsSerializerMixin(object):
         module = importlib.import_module( '.'.join(pieces) ) 
         return getattr(module, class_name)
 
-
     def _get_expandable_names(self, sparse_field_names, omit_field_names):
         field_names = set(self.fields.keys())
         expandable_field_names = set(self.expandable_fields.keys())
@@ -103,7 +104,7 @@ class FlexFieldsSerializerMixin(object):
 
         for field_name in field_names - allowed_field_names:
             self.fields.pop(field_name)
-        
+
         return list(expandable_field_names & allowed_field_names)
 
 

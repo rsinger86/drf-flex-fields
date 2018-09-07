@@ -10,7 +10,7 @@ def is_expanded(request, key):
     for e in expand.split(','):
         expand_fields.extend([e for e in e.split('.')]) 
         
-    return '~all' in expand_fields or key in expand_fields
+    return '*' in expand_fields or key in expand_fields
 	
 
 def split_levels(fields):
@@ -25,8 +25,6 @@ def split_levels(fields):
 	if not fields:
 		return first_level_fields, next_level_fields
 
-	if not isinstance(fields, list):
-		fields = [a.strip() for a in fields.split(',') if a.strip()]
 	for e in fields:
 		if '.' in e:
 			first_level, next_level = e.split('.', 1)
