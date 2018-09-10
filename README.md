@@ -19,7 +19,7 @@ Table of Contents:
   * [Deep, Nested Expansion](#deep-nested-expansion)
   * [Configuration from Serializer Options](#configuration-from-serializer-options)
   * [Field Expansion on "List" Views](#field-expansion-on-list-views)
-  * [Use "*" to Expand All Available Fields](#use-all-to-expand-all-available-fields)
+  * [Use "*" to Expand All Available Fields](#use-*-to-expand-all-available-fields)
 - [Dynamically Setting Fields](#dynamically-setting-fields)
   * [From URL Parameters](#from-url-parameters)
   * [From Serializer Options](#from-serializer-options)
@@ -50,7 +50,7 @@ from rest_flex_fields import FlexFieldsModelViewSet, FlexFieldsModelSerializer
 class PersonViewSet(FlexFieldsModelViewSet):
   queryset = models.Person.objects.all()
   serializer_class = PersonSerializer
-  # Whitelist fields that  can be expanding when listing resources
+  # Whitelist fields that can be expanded when listing resources
   permit_list_expands = ['country']
 
 class CountrySerializer(FlexFieldsModelSerializer):
@@ -333,6 +333,10 @@ The ```include``` field takes precedence over ```expand```. That is, if a field 
 When using an instance of `FlexFieldsModelSerializer`, you can examine the property `expanded_fields` to discover which, if any, fields have been dynamically expanded. 
 
 # Changelog <a id="changelog"></a>
+
+## 0.3.5 (September 2018)
+* Added support for omit fields
+* Replaced ~all with * to be more consistent with DRF
 
 ## 0.3.4 (May 2018)
 * Handle case where `request` is `None` when accessing request object from serializer. Thanks @jsatt!

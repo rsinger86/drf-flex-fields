@@ -44,7 +44,7 @@ Table of Contents:
    Options <#configuration-from-serializer-options>`__
 -  `Field Expansion on "List" Views <#field-expansion-on-list-views>`__
 -  `Use "*" to Expand All Available
-   Fields <#use-all-to-expand-all-available-fields>`__
+   Fields <#use-*-to-expand-all-available-fields>`__
 -  `Dynamically Setting Fields <#dynamically-setting-fields>`__
 -  `From URL Parameters <#from-url-parameters>`__
 -  `From Serializer Options <#from-serializer-options>`__
@@ -85,7 +85,7 @@ resource collections, your viewsets need to subclass
     class PersonViewSet(FlexFieldsModelViewSet):
       queryset = models.Person.objects.all()
       serializer_class = PersonSerializer
-      # Whitelist fields that  can be expanding when listing resources
+      # Whitelist fields that can be expanded when listing resources
       permit_list_expands = ['country']
 
     class CountrySerializer(FlexFieldsModelSerializer):
@@ -443,6 +443,11 @@ been dynamically expanded.
 
 Changelog 
 ==========
+
+0.3.5 (September 2018)
+
+- Added support for omit fields
+- Replaced ~all with * to be more consistent with DRF
 
 0.3.4 (May 2018)
 ----------------
