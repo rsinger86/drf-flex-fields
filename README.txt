@@ -44,7 +44,7 @@ Table of Contents:
    Options <#configuration-from-serializer-options>`__
 -  `Field Expansion on "List" Views <#field-expansion-on-list-views>`__
 -  `Use "*" to Expand All Available
-   Fields <#use-*-to-expand-all-available-fields>`__
+   Fields <#use--to-expand-all-available-fields>`__
 -  `Dynamically Setting Fields <#dynamically-setting-fields>`__
 -  `From URL Parameters <#from-url-parameters>`__
 -  `From Serializer Options <#from-serializer-options>`__
