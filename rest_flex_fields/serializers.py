@@ -73,9 +73,6 @@ class FlexFieldsSerializerMixin(object):
             
         serializer_class = import_serializer_class(serializer_class)
 
-        if serializer_settings.pop('include_context', False):
-            serializer_settings['context'] = self.context
-
         return serializer_class(**serializer_settings)
 
 
