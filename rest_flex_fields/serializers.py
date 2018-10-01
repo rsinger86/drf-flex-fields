@@ -7,12 +7,12 @@ from rest_flex_fields import split_levels
 
 class FlexFieldsSerializerMixin(object):
     """
-        A ModelSerializer that takes additional arguments for
-        "fields" and "omit" in order to
-        control which fields are displayed, and whether to replace simple values with
-        complex, nested serializations.
+    A ModelSerializer that takes additional arguments for "fields", "omit" and
+    "expand" in order to control which fields are displayed, and whether to
+    replace simple values with complex, nested serializations.
     """
     expandable_fields = {}
+    is_flex_field = True
 
     def __init__(self, *args, **kwargs):
         self.expanded_fields = []
@@ -72,7 +72,7 @@ class FlexFieldsSerializerMixin(object):
             del serializer_settings['source']
             
         serializer_class = import_serializer_class(serializer_class)
-
+        assert getattr(serializer_class, 'is_flex_field', False), '{} does not support being an expandable_field; try inheriting from FlexFieldsSerializerMixin'.format(serializer_class)
         return serializer_class(**serializer_settings)
 
 
