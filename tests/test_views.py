@@ -111,3 +111,23 @@ class PetViewTests(APITestCase):
                 'hobbies' : 'sailing' 
             }
         })
+
+
+    def test_list_expanded_supports_wildcard(self):
+        url = reverse('pet-list')
+        url = url+'?expand=owner.employer'
+        response = self.client.get(url, format='json')
+
+        self.assertEqual(response.data[0], {
+            'name' : 'Garfield',
+            'toys' : 'paper ball, string',
+            'species' : 'cat',
+            'owner' : {
+                'name' : 'Fred',
+                'hobbies' : 'sailing',
+                'employer': {
+                    'name' : 'McDonalds',
+                    'public' : False
+                }
+            }
+        })
