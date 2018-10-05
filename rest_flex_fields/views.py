@@ -2,6 +2,7 @@
     This class helps provide control over which fields can be expanded when a
     collection is requested via the list method.
 """
+from fnmatch import fnmatch
 from rest_framework import viewsets
 
 
@@ -22,9 +23,8 @@ class FlexFieldsMixin(object):
             if expand == '*':
                 self._force_expand = self.permit_list_expands
             else:
-                self._force_expand = list(
-                    set(expand.split(',')) & set(self.permit_list_expands)
-                )
+                self._force_expand = [field for field in expand.split(',') if
+                                      any(fnmatch(field, permit_field) for permit_field in self.permit_list_expands)]
 
         return super(FlexFieldsMixin, self).list(request, *args, **kwargs)
 
