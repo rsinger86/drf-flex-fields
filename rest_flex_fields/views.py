@@ -28,6 +28,14 @@ class FlexFieldsMixin(object):
 
         return super(FlexFieldsMixin, self).list(request, *args, **kwargs)
 
+    def create_serializer(self, serializer_class, *args, **kwargs):
+        return serializer_class(*args, **kwargs)
+
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        kwargs['context'] = self.get_serializer_context()
+        return self.create_serializer(serializer_class, *args, **kwargs)
+
     def get_serializer_context(self):
         default_context = super(FlexFieldsMixin, self).get_serializer_context()
         default_context['expandable'] = self._expandable
