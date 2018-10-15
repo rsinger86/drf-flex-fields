@@ -20,7 +20,8 @@ class FlexFieldsSerializerMixin(object):
         passed = {
             'expand': kwargs.pop('expand', None),
             'fields': kwargs.pop('fields', None),
-            'omit': kwargs.pop('omit', [])
+            'omit': kwargs.pop('omit', []),
+            'parent': kwargs.pop('parent', '')
         }
 
         # add excludes from expandable_fields to those on query params
@@ -58,7 +59,8 @@ class FlexFieldsSerializerMixin(object):
         field_options = self.expandable_fields[name]
         serializer_class = field_options[0]
         serializer_settings = copy.deepcopy(field_options[1])
-        
+        serializer_settings['parent'] = name
+
         if name in nested_expands:
             serializer_settings['expand'] = nested_expands[name]
 
@@ -118,7 +120,7 @@ class FlexFieldsSerializerMixin(object):
             return None
 
         fields = self.context['request'].query_params.get(param)
-        return fields.split(',') if fields else None
+        return [f for f in fields.split(',') if f.startswith(passed_settings['parent'])] if fields else None
 
 
     def _get_omit_input(self, passed_settings):
@@ -151,7 +153,7 @@ class FlexFieldsSerializerMixin(object):
             return None
         
         expand = self.context['request'].query_params.get('expand')
-        return expand.split(',') if expand else None
+        return [f for f in expand.split(',') if f.startswith(passed_settings['parent'])] if expand else None
 
 
 def import_serializer_class(location):
