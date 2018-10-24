@@ -1,13 +1,12 @@
 import importlib
 import copy
 from rest_framework import serializers
-from rest_flex_fields import split_levels
-
+from rest_flex_fields import split, split_levels
 
 
 class FlexFieldsSerializerMixin(object):
     """
-    A ModelSerializer that takes additional arguments for "fields", "omit" and
+    A Serializer that takes additional arguments for "fields", "omit" and
     "expand" in order to control which fields are displayed, and whether to
     replace simple values with complex, nested serializations.
     """
@@ -44,7 +43,7 @@ class FlexFieldsSerializerMixin(object):
         for name in expand_field_names:
             if name not in expandable_fields_names:
                 continue
-            
+
             self.expanded_fields.append(name)
 
             self.fields[name] = self._make_expanded_field_serializer(
@@ -72,7 +71,7 @@ class FlexFieldsSerializerMixin(object):
 
         if serializer_settings.get('source') == name:
             del serializer_settings['source']
-            
+
         serializer_class = import_serializer_class(serializer_class)
         assert getattr(serializer_class, 'is_flex_field', False), '{} does not support being an expandable_field; try inheriting from FlexFieldsSerializerMixin'.format(serializer_class)
         return serializer_class(**serializer_settings)
@@ -120,7 +119,7 @@ class FlexFieldsSerializerMixin(object):
             return None
 
         fields = self.context['request'].query_params.get(param)
-        return [f.strip() for f in fields.split(',') if f.startswith(passed_settings['parent'])] if fields else None
+        return [f for f in split(fields) if f.startswith(passed_settings['parent'])] if fields else None
 
 
     def _get_omit_input(self, passed_settings):
@@ -153,7 +152,7 @@ class FlexFieldsSerializerMixin(object):
             return None
         
         expand = self.context['request'].query_params.get('expand')
-        return [f.strip() for f in expand.split(',') if f.startswith(passed_settings['parent'])] if expand else None
+        return [f for f in split(expand) if f.startswith(passed_settings['parent'])] if expand else None
 
 
 def import_serializer_class(location):
@@ -171,7 +170,7 @@ def import_serializer_class(location):
     if not pieces:
         raise ValueError('Please ensure class string is fully qualified with its containing module')
 
-    if pieces[len(pieces) - 1] != 'serializers':
+    if pieces[ len(pieces)-1 ] != 'serializers':
         pieces.append('serializers')
 
     module = importlib.import_module( '.'.join(pieces) )

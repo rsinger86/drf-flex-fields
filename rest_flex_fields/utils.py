@@ -1,3 +1,5 @@
+def split(param):
+    return param.replace(',', ' ').split()  # split(',') doesn't handle empty or whitespace gracefully
 
 
 def is_expanded(request, key):
@@ -7,16 +9,16 @@ def is_expanded(request, key):
     expand = request.query_params.get('expand', '')
     expand_fields = []
 
-    for e in expand.split(','):
-        expand_fields.extend([e for e in e.strip().split('.')])
+    for e in split(expand):
+        expand_fields.extend([e for e in e.split('.')])
         
     return '*' in expand_fields or key in expand_fields
-
+	
 
 def split_levels(fields):
 	"""
-		Convert dot-notation such as ['a', 'a.b', 'a.d', 'c'] into
-		current-level fields ['a', 'c'] and next-level fields
+		Convert dot-notation such as ['a', 'a.b', 'a.d', 'c'] into 
+		current-level fields ['a', 'c'] and next-level fields 
 		{'a': ['b', 'd']}.
 	"""
 	first_level_fields = []
@@ -32,7 +34,7 @@ def split_levels(fields):
 			next_level_fields.setdefault(first_level, []).append(next_level)
 		else:
 			first_level_fields.append(e)
-
+			
 	first_level_fields = list(set(first_level_fields))
 	return first_level_fields, next_level_fields
 
@@ -41,14 +43,14 @@ def get_list_query_param(query_params, param):
     """
     >>> get_list_query_param({'foo': 'a,b,c'}, 'foo')
     ['a', 'b', 'c']
-	>>> get_list_query_param({'foo': 'a, b'}, 'foo')
+    >>> get_list_query_param({'foo': 'a, b'}, 'foo')
     ['a', 'b']
     >>> get_list_query_param({'foo': ''}, 'foo')
     []
     >>> get_list_query_param({}, 'foo')
     []
     """
-    return query_params.get(param, '').replace(',', ' ').split()  # split(',') doesn't handle empty gracefully
+    return split(query_params.get(param, ''))
 
 
 def get_requested_fields(all_fields, query_params, required_fields=None):
