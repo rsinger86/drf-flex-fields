@@ -81,7 +81,7 @@ class FlexFieldsSerializerMixin(object):
         field_names = set(self.fields.keys())
         expandable_field_names = set(self.expandable_fields.keys())
 
-        if not sparse_field_names:
+        if not sparse_field_names or '*' in sparse_field_names:
             sparse_field_names = field_names | expandable_field_names
 
         allowed_field_names = set(sparse_field_names) - set(omit_field_names)
