@@ -23,8 +23,8 @@ class FlexFieldsMixin(object):
             if expand == '*':
                 self._force_expand = self.permit_list_expands
             else:
-                self._force_expand = [field for field in expand.split(',') if
-                                      any(fnmatch(field, permit_field) for permit_field in self.permit_list_expands)]
+                self._force_expand = [field.strip() for field in expand.split(',') if
+                                      any(fnmatch(field.strip(), permit_field) for permit_field in self.permit_list_expands)]
 
         return super(FlexFieldsMixin, self).list(request, *args, **kwargs)
 
@@ -49,7 +49,7 @@ class FlexFieldsMixin(object):
         if not expand:
             return queryset
 
-        expand_fields = self.get_serializer_class().expandable_fields.keys() if expand == '*' else set(expand.split(','))
+        expand_fields = self.get_serializer_class().expandable_fields.keys() if expand == '*' else set([field.strip() for field in expand.split(',')])
         valid_expand_fields = expand_fields if self._expandable else set(expand_fields) & set(self._force_expand)
 
         for field in valid_expand_fields:

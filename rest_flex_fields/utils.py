@@ -8,7 +8,7 @@ def is_expanded(request, key):
     expand_fields = []
 
     for e in expand.split(','):
-        expand_fields.extend([e for e in e.split('.')]) 
+        expand_fields.extend([e for e in e.strip().split('.')])
         
     return '*' in expand_fields or key in expand_fields
 
