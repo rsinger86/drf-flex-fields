@@ -25,7 +25,7 @@ class FlexFieldsMixin(object):
 			if expand == '*':
 				self._force_expand = self.permit_list_expands
 			else:
-				self._force_expand = [field for field in split(expand) if any(fnmatch(field, permit_field) for permit_field in self.permit_list_expands)]
+				self._force_expand = [field for field in split_list(expand) if any(fnmatch(field, permit_field) for permit_field in self.permit_list_expands)]
 
 		return super(FlexFieldsMixin, self).list(request, *args, **kwargs)
 
