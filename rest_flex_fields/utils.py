@@ -1,4 +1,4 @@
-def split(param):
+def split_list(param):
     return param.replace(',', ' ').split()  # split(',') doesn't handle empty or whitespace gracefully
 
 
@@ -9,7 +9,7 @@ def is_expanded(request, key):
     expand = request.query_params.get('expand', '')
     expand_fields = []
 
-    for e in split(expand):
+    for e in split_list(expand):
         expand_fields.extend([e for e in e.split('.')])
         
     return '*' in expand_fields or key in expand_fields
@@ -50,7 +50,7 @@ def get_list_query_param(query_params, param):
     >>> get_list_query_param({}, 'foo')
     []
     """
-    return split(query_params.get(param, ''))
+    return split_list(query_params.get(param, ''))
 
 
 def get_requested_fields(all_fields, query_params, required_fields=None):

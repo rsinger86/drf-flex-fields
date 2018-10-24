@@ -5,7 +5,7 @@
 
 from fnmatch import fnmatch
 from rest_framework import viewsets
-from .utils import split
+from .utils import split_list
 
 
 class FlexFieldsMixin(object):
@@ -50,7 +50,7 @@ class FlexFieldsMixin(object):
 		if not expand:
 			return queryset
 
-		expand_fields = self.get_serializer_class().expandable_fields.keys() if expand == '*' else set(split(expand))
+		expand_fields = self.get_serializer_class().expandable_fields.keys() if expand == '*' else set(split_list(expand))
 		valid_expand_fields = expand_fields if self._expandable else set(expand_fields) & set(self._force_expand)
 
 		for field in valid_expand_fields:

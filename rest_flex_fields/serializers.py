@@ -1,7 +1,7 @@
 import importlib
 import copy
 from rest_framework import serializers
-from rest_flex_fields import split, split_levels
+from rest_flex_fields import split_list, split_levels
 
 
 class FlexFieldsSerializerMixin(object):
@@ -119,7 +119,7 @@ class FlexFieldsSerializerMixin(object):
             return None
 
         fields = self.context['request'].query_params.get(param)
-        return [f for f in split(fields) if f.startswith(passed_settings['parent'])] if fields else None
+        return [f for f in split_list(fields) if f.startswith(passed_settings['parent'])] if fields else None
 
 
     def _get_omit_input(self, passed_settings):
@@ -152,7 +152,7 @@ class FlexFieldsSerializerMixin(object):
             return None
         
         expand = self.context['request'].query_params.get('expand')
-        return [f for f in split(expand) if f.startswith(passed_settings['parent'])] if expand else None
+        return [f for f in split_list(expand) if f.startswith(passed_settings['parent'])] if expand else None
 
 
 def import_serializer_class(location):
