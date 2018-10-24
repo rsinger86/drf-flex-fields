@@ -41,6 +41,8 @@ def get_list_query_param(query_params, param):
     """
     >>> get_list_query_param({'foo': 'a,b,c'}, 'foo')
     ['a', 'b', 'c']
+	>>> get_list_query_param({'foo': 'a, b'}, 'foo')
+    ['a', 'b']
     >>> get_list_query_param({'foo': ''}, 'foo')
     []
     >>> get_list_query_param({}, 'foo')
