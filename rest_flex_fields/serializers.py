@@ -120,7 +120,7 @@ class FlexFieldsSerializerMixin(object):
             return None
 
         fields = self.context['request'].query_params.get(param)
-        return [f for f in fields.split(',') if f.startswith(passed_settings['parent'])] if fields else None
+        return [f.strip() for f in fields.split(',') if f.startswith(passed_settings['parent'])] if fields else None
 
 
     def _get_omit_input(self, passed_settings):
@@ -153,7 +153,7 @@ class FlexFieldsSerializerMixin(object):
             return None
         
         expand = self.context['request'].query_params.get('expand')
-        return [f for f in expand.split(',') if f.startswith(passed_settings['parent'])] if expand else None
+        return [f.strip() for f in expand.split(',') if f.startswith(passed_settings['parent'])] if expand else None
 
 
 def import_serializer_class(location):
