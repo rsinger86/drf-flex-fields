@@ -307,10 +307,8 @@ Use "*" to Expand All Available Fields
 -----------------------------------------
 
 You can set ``expand=*`` to automatically expand all fields that are
-available for expansion. This will take effect for only the top-level
-serializer; if you need to also expand fields that are present on deeply
-nested models, then you will need to explicitly pass their values using
-dot notation.
+available for expansion. If you want to expand all nested fields you
+can use ``expand=nested_field.*``.
 
 Dynamically Setting Fields
 ==========================
