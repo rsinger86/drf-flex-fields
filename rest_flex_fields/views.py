@@ -50,16 +50,19 @@ class FlexFieldsMixin(object):
 		if not expand:
 			return queryset
 
-		expand_fields = self.get_serializer_class().expandable_fields.keys() if expand == '*' else set(split_list(expand))
-		valid_expand_fields = expand_fields if self._expandable else set(expand_fields) & set(self._force_expand)
+		if self._expandable:
+			expand_fields = self.get_serializer_class().expandable_fields.keys() if expand == '*' else split_list(expand)
+		else:
+			expand_fields = self._force_expand
 
-		for field in valid_expand_fields:
+		for field in expand_fields:
 			queryset = self.expand_field(field, queryset)
 
 		return queryset
 
 	def expand_field(self, field, queryset):
 		return queryset
+
 
 class FlexFieldsModelViewSet(FlexFieldsMixin, viewsets.ModelViewSet):
     pass
