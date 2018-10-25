@@ -2,19 +2,6 @@ def split_list(param):
     return param.replace(',', ' ').split()  # split(',') doesn't handle empty or whitespace gracefully
 
 
-def is_expanded(request, key):
-    """ Examines request object to return boolean of whether 
-        passed field is expanded. 
-    """
-    expand = request.query_params.get('expand', '')
-    expand_fields = []
-
-    for e in split_list(expand):
-        expand_fields.extend([e for e in e.split('.')])
-        
-    return '*' in expand_fields or key in expand_fields
-	
-
 def split_levels(fields):
 	"""
 		Convert dot-notation such as ['a', 'a.b', 'a.d', 'c'] into 

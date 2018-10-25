@@ -53,6 +53,16 @@ class PetViewTests(APITestCase):
         })
 
 
+    def test_retrieve_sparse_whitespace(self):
+        url = reverse('pet-detail', args=[self.pet.id])
+        response = self.client.get(url+'?fields=name, species',format='json')
+
+        self.assertEqual(response.data, {
+            'name' : 'Garfield',
+            'species' : 'cat'
+        })
+
+
     def test_retrieve_omit(self):
         url = reverse('pet-detail', args=[self.pet.id])
         response = self.client.get(url+'?omit=toys,owner',format='json')

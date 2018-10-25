@@ -286,24 +286,22 @@ protect yourself from careless clients. However, if you would like to
 make a field expandable even when listing collections, you can add the
 field's name to the ``permit_list_expands`` property on the viewset.
 Just make sure you are wisely using ``select_related`` and
-``prefect_related`` in the viewset's queryset. You can take advantage of
-a utility function, ``is_expanded`` to adjust the queryset accordingly.
+``prefect_related`` in the viewset's queryset by overriding expand_field.
+However be aware that the field could be in nested format, e.g. field.*
 
 Example:
 
 .. code:: python
-
-    from drf_flex_fields import is_expanded
 
     class PersonViewSet(FlexFieldsModelViewSet):
       permit_list_expands = ['employer']
       queryset = models.Person.objects.all().select_related('employer')
       serializer_class = PersonSerializer
 
-      def get_queryset(self):
-          if is_expanded(self.request, 'employer'):
-              models.Person.objects.all().select_related('employer')
-          return models.Person.objects.all()
+      def expand_field(self, field, queryset):
+          if field.startswith('employer'):
+              queryset = queryset.select_related('employer')
+          return queryset
 
 Use "*" to Expand All Available Fields
 -----------------------------------------

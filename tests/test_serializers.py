@@ -48,6 +48,24 @@ class TestFlexFieldSerializer(unittest.TestCase):
             }
         })
 
+    def test_nested_field_include_all(self):
+        pet = Pet(
+            name='Garfield',
+            toys='paper ball, string',
+            species='cat',
+            owner=Person(name='Fred', employer=Company(name='McDonalds'))
+        )
+
+        serializer = PetSerializer(pet, expand=['owner.employer'], fields=['owner.employer.*'])
+        self.assertEqual(serializer.data, {
+            'owner' : {
+                'employer' : {
+                    'name' : 'McDonalds',
+                    'public' : False
+                }
+            }
+        })
+
     def test_basic_field_omit(self):
         pet = Pet(
             name='Garfield', 
