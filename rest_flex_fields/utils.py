@@ -40,17 +40,16 @@ def get_list_query_param(query_params, param):
     return split_list(query_params.get(param, ''))
 
 
-def get_requested_fields(all_fields, query_params, required_fields=None):
+def get_requested_fields(all_fields, query_params):
     """
     Determine the requested fields through a combination of the fields and omit query params
     """
     fields = get_list_query_param(query_params, 'fields')
     omit = get_list_query_param(query_params, 'omit')
-    permitted_omit = set(omit) - set(required_fields) if required_fields else set(omit)
 
     if fields:
         requested_fields = [field for field in fields if field in all_fields]
     else:
-        requested_fields = [field for field in all_fields if field not in permitted_omit]
+        requested_fields = [field for field in all_fields if field not in set(omit)]
 
     return requested_fields
