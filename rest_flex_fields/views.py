@@ -1,6 +1,6 @@
 """ 
 	This class helps provide control over which fields can be expanded when a 
-	collection is request via the list method.
+	collection is requested via the list method.
 """
 
 from rest_framework import viewsets
