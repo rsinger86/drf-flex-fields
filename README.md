@@ -83,7 +83,7 @@ class CountrySerializer(FlexFieldsModelSerializer):
 
 
 class PersonSerializer(FlexFieldsModelSerializer):
-    country = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    country = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Person
@@ -140,7 +140,7 @@ class CountrySerializer(FlexFieldsModelSerializer):
     }
 
 class PersonSerializer(FlexFieldsModelSerializer):
-    country = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    country = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Person
