@@ -27,7 +27,7 @@ class FlexFieldsSerializerMixin(object):
         super(FlexFieldsSerializerMixin, self).__init__(*args, **kwargs)
         expand = self._get_expand_input(passed)
         fields = self._get_fields_input(passed)
-        omit = self.get_omit_input(passed)
+        omit = self._get_omit_input(passed)
 
         expand_field_names, next_expand_field_names = split_levels(expand)
         sparse_field_names, next_sparse_field_names = split_levels(fields)
@@ -84,6 +84,7 @@ class FlexFieldsSerializerMixin(object):
         """
         pieces = location.split('.')
         class_name = pieces.pop()
+
         if pieces[len(pieces)-1] != 'serializers':
             pieces.append('serializers')
 
@@ -96,18 +97,24 @@ class FlexFieldsSerializerMixin(object):
             are passed, remove any fields not found in that list.
         """
         sparse = len(sparse_names) > 0
+        to_remove = []
 
         if not sparse and len(omit_names) == 0:
             return
 
         for field_name in self.fields:
-            if field_name in omit_names:
-                self.fields.pop(field_name)
+            if field_name in omit_names and field_name in self.fields:
+                to_remove.append(field_name)
+            elif sparse and field_name not in sparse_names and field_name in self.fields:
+                to_remove.append(field_name)
 
-            if sparse and field_name not in sparse_names:
-                self.fields.pop(field_name)
+        for remove_field in to_remove:
+            self.fields.pop(remove_field)
 
-    def _get_expanded_names(self, expand_field_names, sparse_field_names, omit_field_names):
+    def _get_expanded_names(self,
+                            expand_field_names,
+                            sparse_field_names,
+                            omit_field_names):
         if len(expand_field_names) == 0:
             return []
 
@@ -192,8 +199,9 @@ class FlexFieldsSerializerMixin(object):
             return []
 
         expand = self.context['request'].query_params.get('expand')
-        return expand.split(',') if expand else []]
+        return expand.split(',') if expand else []
 
 
-class FlexFieldsModelSerializer(FlexFieldsSerializerMixin, serializers.ModelSerializer):
+class FlexFieldsModelSerializer(FlexFieldsSerializerMixin,
+                                serializers.ModelSerializer):
     pass
