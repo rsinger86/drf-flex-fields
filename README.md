@@ -50,7 +50,7 @@ from rest_flex_fields import FlexFieldsModelViewSet, FlexFieldsModelSerializer
 class PersonViewSet(FlexFieldsModelViewSet):
     queryset = models.Person.objects.all()
     serializer_class = PersonSerializer
-    # Whitelist fields that  can be expanding when listing resources
+    # Whitelist fields that can be expanded when listing resources
     permit_list_expands = ['country']
 
 class CountrySerializer(FlexFieldsModelSerializer):
@@ -83,7 +83,7 @@ class CountrySerializer(FlexFieldsModelSerializer):
 
 
 class PersonSerializer(FlexFieldsModelSerializer):
-    country = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    country = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Person
@@ -140,7 +140,7 @@ class CountrySerializer(FlexFieldsModelSerializer):
     }
 
 class PersonSerializer(FlexFieldsModelSerializer):
-    country = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    country = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Person
@@ -204,7 +204,7 @@ class PersonSerializer(FlexFieldsModelSerializer):
 
 ## Field Expansion on "List" Views
 
-By default, when subclassing ```FlexFieldsModelViewSet```, you can only expand fields when you are retrieving single resources, in order to protect yourself from careless clients. However, if you would like to make a field expandable even when listing collections, you can add the field's name to the ```permit_list_expands``` property on the viewset. Just make sure you are wisely using ```select_related``` and ```prefect_related``` in the viewset's queryset. You can take advantage of a utility function, ```is_expanded``` to adjust the queryset accordingly.
+By default, when subclassing ```FlexFieldsModelViewSet```, you can only expand fields when you are retrieving single resources, in order to protect yourself from careless clients. However, if you would like to make a field expandable even when listing collections, you can add the field's name to the ```permit_list_expands``` property on the viewset. Just make sure you are wisely using ```select_related``` and ```prefetch_related``` in the viewset's queryset. You can take advantage of a utility function, ```is_expanded()``` to adjust the queryset accordingly.
 
 
 Example:
@@ -214,20 +214,20 @@ from drf_flex_fields import is_expanded
 
 class PersonViewSet(FlexFieldsModelViewSet):
     permit_list_expands = ['employer']
-    queryset = models.Person.objects.all().select_related('employer')
     serializer_class = PersonSerializer
 
     def get_queryset(self):
+        queryset = models.Person.objects.all()
         if is_expanded(self.request, 'employer'):
-            models.Person.objects.all().select_related('employer')
-        return models.Person.objects.all()
+            queryset = queryset.select_related('employer')
+        return queryset
 
 
 ```
 
 ## Use "~all" to Expand All Available Fields
 
-You can set ```expand=~all``` to automatically expand all fields that are available for expansion. This will take effect for only the top-level serializer; if you need to also expand fields that are present on deeply nested models, then you will need to explicitly pass their values using dot notation.
+You can set ```expand=~all``` to automatically expand all fields that are available for expansion. This will take effect only for the top-level serializer; if you need to also expand fields that are present on deeply nested models, then you will need to explicitly pass their values using dot notation.
 
 # Dynamically Setting Fields
 
@@ -293,10 +293,10 @@ serializer = PersonSerializer(person, fields=["id", "name", "country.name"])
 print(serializer.data)
 
 >>>{
-  "id" : 13322,
-  "name" : "John Doe",
-  "country" : {
-    "name" : "United States",
+  "id": 13322,
+  "name": "John Doe",
+  "country": {
+    "name": "United States",
   }
 }
 ```
@@ -307,10 +307,10 @@ print(serializer.data)
 
 ```json
 {
-  "id" : 13322,
-  "name" : "John Doe",
-  "country" : {
-    "name" : "United States",
+  "id": 13322,
+  "name": "John Doe",
+  "country": {
+    "name": "United States",
   }
 }
 ```
@@ -319,8 +319,8 @@ However, you make the following request ```HTTP GET /person/13322?include=id,nam
 
 ```json
 {
-  "id" : 13322,
-  "name" : "John Doe"
+  "id": 13322,
+  "name": "John Doe"
 }
 ```
 
@@ -328,7 +328,7 @@ The ```include``` field takes precedence over ```expand```. That is, if a field 
 
 # Serializer Introspection
 
-When using an instance of `FlexFieldsModelSerializer`, you can examine the property `expanded_fields` to discover which, if any, fields have been dynamically expanded. 
+When using an instance of `FlexFieldsModelSerializer`, you can examine the property `expanded_fields` to discover which fields, if any, have been dynamically expanded.
 
 # Changelog <a id="changelog"></a>
 
