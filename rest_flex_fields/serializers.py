@@ -1,15 +1,17 @@
-import importlib
 import copy
+import importlib
+
 from rest_framework import serializers
+
 from rest_flex_fields import split_levels
 
 
 class FlexFieldsSerializerMixin(object):
     """
         A ModelSerializer that takes additional arguments for
-        "fields" and "include" in order to
-        control which fields are displayed, and whether to replace simple values with
-        complex, nested serializations.
+        "fields", "omit" and "expand" in order to
+        control which fields are displayed, and whether to replace simple
+        values with complex, nested serializations.
     """
     expandable_fields = {}
 
@@ -17,31 +19,39 @@ class FlexFieldsSerializerMixin(object):
         self.expanded_fields = []
 
         passed = {
-            'expand': kwargs.pop('expand', None),
-            'fields': kwargs.pop('fields', None)
+            'expand': kwargs.pop('expand', []),
+            'fields': kwargs.pop('fields', []),
+            'omit': kwargs.pop('omit', [])
         }
 
         super(FlexFieldsSerializerMixin, self).__init__(*args, **kwargs)
         expand = self._get_expand_input(passed)
         fields = self._get_fields_input(passed)
+        omit = self.get_omit_input(passed)
+
         expand_field_names, next_expand_field_names = split_levels(expand)
         sparse_field_names, next_sparse_field_names = split_levels(fields)
-        expandable_fields_names = self._get_expandable_names(sparse_field_names)
+        omit_field_names, next_omit_field_names = split_levels(omit)
 
-        if '~all' in expand_field_names:
-            expand_field_names = self.expandable_fields.keys()
+        self._clean_fields(omit_field_names, sparse_field_names)
 
-        for name in expand_field_names:
-            if name not in expandable_fields_names:
-                continue
+        expanded_field_names = self._get_expanded_names(
+            expand_field_names,
+            sparse_field_names,
+            omit_field_names
+        )
 
+        for name in expanded_field_names:
             self.expanded_fields.append(name)
 
             self.fields[name] = self._make_expanded_field_serializer(
-                name, next_expand_field_names, next_sparse_field_names
+                name,
+                next_expand_field_names,
+                next_sparse_field_names,
+                next_omit_field_names
             )
 
-    def _make_expanded_field_serializer(self, name, nested_expands, nested_includes):
+    def _make_expanded_field_serializer(self, name, nested_expand, nested_fields, nested_omit):
         """
         Returns an instance of the dynamically created nested serializer.
         """
@@ -49,11 +59,14 @@ class FlexFieldsSerializerMixin(object):
         serializer_class = field_options[0]
         serializer_settings = copy.deepcopy(field_options[1])
 
-        if name in nested_expands:
-            serializer_settings['expand'] = nested_expands[name]
+        if name in nested_expand:
+            serializer_settings['expand'] = nested_expand[name]
 
-        if name in nested_includes:
-            serializer_settings['fields'] = nested_includes[name]
+        if name in nested_fields:
+            serializer_settings['fields'] = nested_fields[name]
+
+        if name in nested_omit:
+            serializer_settings['omit'] = nested_omit[name]
 
         if serializer_settings.get('source') == name:
             del serializer_settings['source']
@@ -71,24 +84,51 @@ class FlexFieldsSerializerMixin(object):
         """
         pieces = location.split('.')
         class_name = pieces.pop()
-        if pieces[ len(pieces)-1 ] != 'serializers':
+        if pieces[len(pieces)-1] != 'serializers':
             pieces.append('serializers')
 
-        module = importlib.import_module( '.'.join(pieces) ) 
+        module = importlib.import_module('.'.join(pieces))
         return getattr(module, class_name)
 
-    def _get_expandable_names(self, sparse_field_names):
-        if not sparse_field_names:
-            return self.expandable_fields.keys()
+    def _clean_fields(self, omit_names, sparse_names):
+        """
+            Remove fields that are found in omit list, and if sparse names
+            are passed, remove any fields not found in that list.
+        """
+        sparse = len(sparse_names) > 0
 
-        allowed_field_names = set(sparse_field_names)
-        field_names = set(self.fields.keys())
-        expandable_field_names = set(self.expandable_fields.keys())
+        if not sparse and len(omit_names) == 0:
+            return
 
-        for field_name in field_names - allowed_field_names:
-            self.fields.pop(field_name)
+        for field_name in self.fields:
+            if field_name in omit_names:
+                self.fields.pop(field_name)
 
-        return list(expandable_field_names & allowed_field_names)
+            if sparse and field_name not in sparse_names:
+                self.fields.pop(field_name)
+
+    def _get_expanded_names(self, expand_field_names, sparse_field_names, omit_field_names):
+        if len(expand_field_names) == 0:
+            return []
+
+        if '~all' or '*' in expand_field_names:
+            expand_field_names = self.expandable_fields.keys()
+
+        accum = []
+
+        for name in expand_field_names:
+            if name not in self.expandable_fields:
+                continue
+
+            if name in omit_field_names:
+                continue
+
+            if len(sparse_field_names) > 0 and name not in sparse_field_names:
+                continue
+
+            accum.append(name)
+
+        return accum
 
     @property
     def _can_access_request(self):
@@ -106,17 +146,29 @@ class FlexFieldsSerializerMixin(object):
 
         return self.context['request'].method == 'GET'
 
-    def _get_fields_input(self, passed_settings):
-        value = passed_settings.get('fields')
+    def _get_omit_input(self, passed_settings):
+        value = passed_settings.get('omit')
 
-        if value:
+        if len(value) > 0:
             return value
 
         if not self._can_access_request:
-            return None
+            return []
+
+        omit = self.context['request'].query_params.get('omit')
+        return omit.split(',') if omit else []
+
+    def _get_fields_input(self, passed_settings):
+        value = passed_settings.get('fields')
+
+        if len(value) > 0:
+            return value
+
+        if not self._can_access_request:
+            return []
 
         fields = self.context['request'].query_params.get('fields')
-        return fields.split(',') if fields else None
+        return fields.split(',') if fields else []
 
     def _get_expand_input(self, passed_settings):
         """
@@ -126,21 +178,21 @@ class FlexFieldsSerializerMixin(object):
         """
         value = passed_settings.get('expand')
 
-        if value:
+        if len(value) > 0:
             return value
 
         if not self._can_access_request:
-            return None
+            return []
 
         if self.context.get('expandable') is False:
             force_expand = self.context.get('force_expand', [])
             if len(force_expand) > 0:
                 return force_expand
 
-            return None
+            return []
 
         expand = self.context['request'].query_params.get('expand')
-        return expand.split(',') if expand else None
+        return expand.split(',') if expand else []]
 
 
 class FlexFieldsModelSerializer(FlexFieldsSerializerMixin, serializers.ModelSerializer):
