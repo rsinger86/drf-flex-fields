@@ -11,7 +11,7 @@ class FlexFieldsSerializerMixin(object):
         A ModelSerializer that takes additional arguments for
         "fields", "omit" and "expand" in order to
         control which fields are displayed, and whether to replace simple
-        values with complex, nested serializations.
+        values with complex, nested serializations.clean
     """
     expandable_fields = {}
 
@@ -29,16 +29,19 @@ class FlexFieldsSerializerMixin(object):
         fields = self._get_fields_input(passed)
         omit = self._get_omit_input(passed)
 
-        expand_field_names, next_expand_field_names = split_levels(expand)
-        sparse_field_names, next_sparse_field_names = split_levels(fields)
-        omit_field_names, next_omit_field_names = split_levels(omit)
+        expand_fields, next_expand_fields = split_levels(expand)
+        sparse_fields, next_sparse_fields = split_levels(fields)
+        omit_fields, next_omit_fields = split_levels(omit)
 
-        self._clean_fields(omit_field_names, sparse_field_names)
+        self._clean_fields(
+            omit_fields, sparse_fields, next_omit_fields
+        )
 
         expanded_field_names = self._get_expanded_names(
-            expand_field_names,
-            sparse_field_names,
-            omit_field_names
+            expand_fields,
+            omit_fields,
+            sparse_fields,
+            next_omit_fields
         )
 
         for name in expanded_field_names:
@@ -46,9 +49,9 @@ class FlexFieldsSerializerMixin(object):
 
             self.fields[name] = self._make_expanded_field_serializer(
                 name,
-                next_expand_field_names,
-                next_sparse_field_names,
-                next_omit_field_names
+                next_expand_fields,
+                next_sparse_fields,
+                next_omit_fields
             )
 
     def _make_expanded_field_serializer(self, name, nested_expand, nested_fields, nested_omit):
@@ -91,46 +94,63 @@ class FlexFieldsSerializerMixin(object):
         module = importlib.import_module('.'.join(pieces))
         return getattr(module, class_name)
 
-    def _clean_fields(self, omit_names, sparse_names):
+    def _clean_fields(self, omit_fields, sparse_fields, next_level_omits):
         """
             Remove fields that are found in omit list, and if sparse names
             are passed, remove any fields not found in that list.
         """
-        sparse = len(sparse_names) > 0
+        sparse = len(sparse_fields) > 0
         to_remove = []
 
-        if not sparse and len(omit_names) == 0:
+        if not sparse and len(omit_fields) == 0:
             return
 
         for field_name in self.fields:
-            if field_name in omit_names and field_name in self.fields:
-                to_remove.append(field_name)
-            elif sparse and field_name not in sparse_names and field_name in self.fields:
+            is_present = self._is_field_present(
+                field_name, omit_fields, sparse_fields, next_level_omits
+            )
+
+            if not is_present:
                 to_remove.append(field_name)
 
         for remove_field in to_remove:
             self.fields.pop(remove_field)
 
+    def _is_field_present(self,
+                          field_name,
+                          omit_fields,
+                          sparse_fields,
+                          next_level_omits):
+        if field_name in omit_fields and field_name not in next_level_omits:
+            return False
+
+        if len(sparse_fields) > 0 and field_name not in sparse_fields:
+            return False
+
+        return True
+
     def _get_expanded_names(self,
-                            expand_field_names,
-                            sparse_field_names,
-                            omit_field_names):
-        if len(expand_field_names) == 0:
+                            expand_fields,
+                            omit_fields,
+                            sparse_fields,
+                            next_level_omits):
+        if len(expand_fields) == 0:
             return []
 
-        if '~all' or '*' in expand_field_names:
-            expand_field_names = self.expandable_fields.keys()
+        if '~all' or '*' in expand_fields:
+            expand_fields = self.expandable_fields.keys()
 
         accum = []
 
-        for name in expand_field_names:
+        for name in expand_fields:
             if name not in self.expandable_fields:
                 continue
 
-            if name in omit_field_names:
-                continue
+            is_present = self._is_field_present(
+                name, omit_fields, sparse_fields, next_level_omits
+            )
 
-            if len(sparse_field_names) > 0 and name not in sparse_field_names:
+            if not is_present:
                 continue
 
             accum.append(name)
