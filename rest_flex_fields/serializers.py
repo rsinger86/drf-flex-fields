@@ -106,7 +106,7 @@ class FlexFieldsSerializerMixin(object):
             return
 
         for field_name in self.fields:
-            is_present = self._is_field_present(
+            is_present = self._should_field_exist(
                 field_name, omit_fields, sparse_fields, next_level_omits
             )
 
@@ -116,11 +116,19 @@ class FlexFieldsSerializerMixin(object):
         for remove_field in to_remove:
             self.fields.pop(remove_field)
 
-    def _is_field_present(self,
-                          field_name,
-                          omit_fields,
-                          sparse_fields,
-                          next_level_omits):
+    def _should_field_exist(self,
+                            field_name,
+                            omit_fields,
+                            sparse_fields,
+                            next_level_omits):
+        """
+            Next level omits take form of:
+            {
+                'this_level_field': [field_to_omit_at_next_level]
+            }
+            We don't want to prematurely omit a field, eg "omit=house.rooms.kitchen"
+            should not omit the entire house or all the rooms, just the kitchen.
+        """
         if field_name in omit_fields and field_name not in next_level_omits:
             return False
 
@@ -146,7 +154,7 @@ class FlexFieldsSerializerMixin(object):
             if name not in self.expandable_fields:
                 continue
 
-            is_present = self._is_field_present(
+            is_present = self._should_field_exist(
                 name, omit_fields, sparse_fields, next_level_omits
             )
 

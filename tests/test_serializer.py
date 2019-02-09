@@ -14,7 +14,7 @@ class MockRequest(object):
         self.method = method
 
 
-class TestFlexFieldSerializer(unittest.TestCase):
+class TestSerialize(unittest.TestCase):
 
     def test_basic_field_omit(self):
         pet = Pet(
