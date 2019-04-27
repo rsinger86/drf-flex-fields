@@ -20,7 +20,7 @@ Table of Contents:
   * [Configuration from Serializer Options](#configuration-from-serializer-options)
   * [Field Expansion on "List" Views](#field-expansion-on-list-views)
   * [Use "~all" to Expand All Available Fields](#use-all-to-expand-all-available-fields)
-- [Dynamically Setting Fields](#dynamically-setting-fields)
+- [Dynamically Setting Fields/Sparse Fieldsets](#dynamically-setting-fields)
   * [From URL Parameters](#from-url-parameters)
   * [From Serializer Options](#from-serializer-options)
 - [Combining Dynamically-Set Fields and Field Expansion](#combining-dynamically-set-fields-and-field-expansion)
@@ -37,8 +37,8 @@ pip install drf-flex-fields
 
 # Requirements
 
-* Python (2.7, 3.2, 3.3, 3.4, 3.5)
-* Django (1.8, 1.9, 1.10, 1.11, 2.0)
+* Python >= 2.7
+* Django >= 1.8
 
 # Basics
 
@@ -229,7 +229,9 @@ class PersonViewSet(FlexFieldsModelViewSet):
 
 You can set ```expand=~all``` to automatically expand all fields that are available for expansion. This will take effect for only the top-level serializer; if you need to also expand fields that are present on deeply nested models, then you will need to explicitly pass their values using dot notation.
 
-# Dynamically Setting Fields
+# Dynamically Setting Fields (Sparse Fields)
+
+You can use either they `fields` or `omit` keywords to declare only the fields you want to include or to specify fields that should be excluded.
 
 ## From URL Parameters
 
@@ -269,10 +271,19 @@ Or, for more specificity, you can use dot-notation,  ```?fields=id,name,country.
   }
 }
 ```
+Or, if you want to leave out the nested country object, do ```?omit=country```:
+```json
+{
+  "id" : 13322,
+  "name" : "John Doe",
+  "occupation" : "Programmer",
+  "hobbies" : ["rock climbing", "sipping coffee"]
+}
+```
 
 ## From Serializer Options
 
-You could accomplish the same outcome as the example above by passing options to your serializers. With this approach, you lose runtime dynamism, but gain the ability to re-use serializers, rather than creating a simplified copy of a serializer for the purposes of embedding it.
+You could accomplish the same outcome as the example above by passing options to your serializers. With this approach, you lose runtime dynamism, but gain the ability to re-use serializers, rather than creating a simplified copy of a serializer for the purposes of embedding it.  The example below uses the `fields` keyword, but you can also pass in keyword argument for `omit` to exclude specific fields. 
 
 ```python
 from rest_flex_fields import FlexFieldsModelSerializer
@@ -331,6 +342,9 @@ The ```include``` field takes precedence over ```expand```. That is, if a field 
 When using an instance of `FlexFieldsModelSerializer`, you can examine the property `expanded_fields` to discover which, if any, fields have been dynamically expanded. 
 
 # Changelog <a id="changelog"></a>
+
+## 0.5.0 (April 2019)
+* Added support for `omit` keyword for field exclusion. Code clean up and improved test coverage.
 
 ## 0.3.4 (May 2018)
 * Handle case where `request` is `None` when accessing request object from serializer. Thanks @jsatt!

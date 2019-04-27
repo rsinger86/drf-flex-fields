@@ -1,5 +1,5 @@
 """ 
-	This class helps provide control over which fields can be expanded when a 
+	This class helps provide control over which fields can be expanded when a
 	collection is request via the list method.
 """
 
@@ -20,3 +20,4 @@ class FlexFieldsMixin(object):
 
 class FlexFieldsModelViewSet(FlexFieldsMixin, viewsets.ModelViewSet):
     pass
+
