@@ -8,7 +8,6 @@ from rest_framework import viewsets
 
 class FlexFieldsMixin(object):
     permit_list_expands = []
-    _permitted_expands = []
 
     def get_serializer_context(self):
         default_context = super(FlexFieldsMixin, self).get_serializer_context()

@@ -145,11 +145,9 @@ class FlexFieldsSerializerMixin(object):
             if name not in self.expandable_fields:
                 continue
 
-            is_present = self._should_field_exist(
+            if not self._should_field_exist(
                 name, omit_fields, sparse_fields, next_level_omits
-            )
-
-            if not is_present:
+            ):
                 continue
 
             accum.append(name)

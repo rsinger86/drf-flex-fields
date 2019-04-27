@@ -126,8 +126,54 @@ class TestFlexFieldModelSerializer(TestCase):
         result = serializer._get_fields_input({"fields": []})
         self.assertEqual(result, ["cat", "dog"])
 
+    def test_get_expand_input_from_explicit_setting(self):
+        serializer = FlexFieldsModelSerializer(context={})
+
+        serializer.context["request"] = MockRequest(
+            method="GET", query_params={"fields": "cat,dog"}
+        )
+
+        result = serializer._get_expand_input({"expand": ["cat"]})
+        self.assertEqual(result, ["cat"])
+
+    def test_get_expand_input_from_query_param(self):
+        serializer = FlexFieldsModelSerializer(context={})
+
+        serializer.context["request"] = MockRequest(
+            method="GET", query_params={"expand": "cat,dog"}
+        )
+
+        result = serializer._get_expand_input({"expand": []})
+        self.assertEqual(result, ["cat", "dog"])
+
+    def test_get_expand_input_from_query_param_limit_to_list_permitted(self):
+        serializer = FlexFieldsModelSerializer(context={})
+
+        serializer.context["request"] = MockRequest(
+            method="GET", query_params={"expand": "cat,dog"}
+        )
+
+        serializer.context["permitted_expands"] = ["cat"]
+        result = serializer._get_expand_input({"expand": []})
+        self.assertEqual(result, ["cat"])
+
+    def test_parse_request_list_value(self):
+        serializer = FlexFieldsModelSerializer(context={})
+
+        serializer.context["request"] = MockRequest(
+            method="GET", query_params={"abc": "cat,dog,mouse"}
+        )
+
+        result = serializer._parse_request_list_value("abc")
+        self.assertEqual(result, ["cat", "dog", "mouse"])
+
+    def test_parse_request_list_value_empty_if_cannot_access_request(self):
+        serializer = FlexFieldsModelSerializer(context={})
+        result = serializer._parse_request_list_value("abc")
+        self.assertEqual(result, [])
+
     def test_import_serializer_class(self):
-        return
+        pass
 
     def test_make_expanded_field_serializer(self):
-        return
+        pass
