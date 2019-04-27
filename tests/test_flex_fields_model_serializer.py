@@ -86,11 +86,45 @@ class TestFlexFieldModelSerializer(TestCase):
         )
         self.assertTrue(serializer._can_access_request)
 
-    def test_get_omit_input(self):
-        return
+    def test_get_omit_input_from_explicit_settings(self):
+        serializer = FlexFieldsModelSerializer(context={})
 
-    def test_get_fields_input(self):
-        return
+        serializer.context["request"] = MockRequest(
+            method="GET", query_params={"omit": "cat,dog"}
+        )
+
+        result = serializer._get_omit_input({"omit": ["fish"]})
+        self.assertEqual(result, ["fish"])
+
+    def test_get_omit_input_from_query_param(self):
+        serializer = FlexFieldsModelSerializer(context={})
+
+        serializer.context["request"] = MockRequest(
+            method="GET", query_params={"omit": "cat,dog"}
+        )
+
+        result = serializer._get_omit_input({"omit": []})
+        self.assertEqual(result, ["cat", "dog"])
+
+    def test_get_fields_input_from_explicit_settings(self):
+        serializer = FlexFieldsModelSerializer(context={})
+
+        serializer.context["request"] = MockRequest(
+            method="GET", query_params={"fields": "cat,dog"}
+        )
+
+        result = serializer._get_fields_input({"fields": ["fish"]})
+        self.assertEqual(result, ["fish"])
+
+    def test_get_fields_input_from_query_param(self):
+        serializer = FlexFieldsModelSerializer(context={})
+
+        serializer.context["request"] = MockRequest(
+            method="GET", query_params={"fields": "cat,dog"}
+        )
+
+        result = serializer._get_fields_input({"fields": []})
+        self.assertEqual(result, ["cat", "dog"])
 
     def test_import_serializer_class(self):
         return
