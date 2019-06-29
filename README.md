@@ -25,6 +25,7 @@ Table of Contents:
   * [From Serializer Options](#from-serializer-options)
 - [Combining Dynamically-Set Fields and Field Expansion](#combining-dynamically-set-fields-and-field-expansion)
 - [Serializer Introspection](#serializer-introspection)
+- [Lazy evaluation of serializer](#lazy-evaluation-of-serializer)
 - [Change Log](#changelog)
 - [Testing](#testing)
 - [License](#license)
@@ -340,6 +341,20 @@ The ```include``` field takes precedence over ```expand```. That is, if a field 
 # Serializer Introspection
 
 When using an instance of `FlexFieldsModelSerializer`, you can examine the property `expanded_fields` to discover which fields, if any, have been dynamically expanded.
+
+# Lazy evaluation of serializer
+
+If you want to lazily evaluate the reference to your nested serializer class from a string inside expandable_fields, you need to use this syntax:
+
+```python
+expandable_fields = {
+    'record_set': ('<app_name>.RelatedSerializer', {'source': 'related_set', 'many': True})
+}
+```
+
+Substitute the name of your Django app where the serializer is found for `<app_name>`.
+
+This allows to reference a serializer that has not yet been defined.
 
 # Changelog <a id="changelog"></a>
 
