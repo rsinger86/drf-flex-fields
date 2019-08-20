@@ -1,6 +1,14 @@
+from http import HTTPStatus
+from pprint import pprint
+from unittest.mock import patch
+
+from django.db import connection
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework.test import APITestCase
-from tests.testapp.models import Pet, Person, Company
+
+from rest_flex_fields.filter_backends import FlexFieldsFilterBackend
+from tests.testapp.models import Company, Person, Pet
 
 
 class PetViewTests(APITestCase):
@@ -71,3 +79,34 @@ class PetViewTests(APITestCase):
             },
         )
 
+
+@override_settings(DEBUG=True)
+@patch('tests.testapp.views.PetViewSet.filter_backends', [FlexFieldsFilterBackend])
+class PetViewWithSelectFieldsFilterBackendTests(PetViewTests):
+    def test_query_optimization(self):
+        url = reverse("pet-list")
+        url = url + "?expand=owner&fields=name,owner"
+
+        response = self.client.get(url, format="json")
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+        self.assertEqual(len(connection.queries), 1)
+        self.assertEqual(
+            connection.queries[0]['sql'],
+            (
+                'SELECT '
+                '"testapp_pet"."id", '
+                '"testapp_pet"."name", '
+                '"testapp_pet"."owner_id", '
+                '"testapp_person"."id", '
+                '"testapp_person"."name", '
+                '"testapp_person"."hobbies", '
+                '"testapp_person"."employer_id" '
+                'FROM "testapp_pet" '
+                'INNER JOIN "testapp_person" ON ("testapp_pet"."owner_id" = "testapp_person"."id")'
+            ),
+        )
+
+    # todo: test many to one
+    # todo: test many to many
+    # todo: test view options for SelectFieldsFilterBackend
