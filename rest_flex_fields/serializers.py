@@ -80,6 +80,9 @@ class FlexFieldsSerializerMixin(object):
         <app>.<SerializerName> will automatically be interpreted as:
         <app>.serializers.<SerializerName>
         """
+        if location == "self":
+            return self.__class__
+
         pieces = location.split(".")
         class_name = pieces.pop()
 
