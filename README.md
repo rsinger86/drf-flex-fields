@@ -376,7 +376,7 @@ It will automatically call `select_related` and `prefetch_related` on the curren
 
 # Changelog <a id="changelog"></a>
 
-## 0.6.0 (May 2019)
+## 0.6.1 (September 2019)
 * Adds experimental support for automatically SQL query optimization via a `FlexFieldsFilterBackend`. Thanks ADR-007!
 * Adds CircleCI config file. Thanks mikeIFTS! 
 * Moves declaration of `expandable_fields` to `Meta` class on serialzer for consistency with DRF (will continue to support declaration as class property)
