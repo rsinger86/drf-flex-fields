@@ -26,6 +26,7 @@ Table of Contents:
 - [Combining Dynamically-Set Fields and Field Expansion](#combining-dynamically-set-fields-and-field-expansion)
 - [Serializer Introspection](#serializer-introspection)
 - [Lazy evaluation of serializer](#lazy-evaluation-of-serializer)
+- [Query optimization](connection.queries)
 - [Change Log](#changelog)
 - [Testing](#testing)
 - [License](#license)
@@ -355,6 +356,25 @@ expandable_fields = {
 Substitute the name of your Django app where the serializer is found for `<app_name>`.
 
 This allows to reference a serializer that has not yet been defined.
+
+# Query optimization
+
+If you want to optimize database queries you can add FlexFieldFilterBackend to `DEFAULT_FILTER_BACKENDS` in the settings:
+```python
+# settings.py
+
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': (
+        'rest_flex_fields.filter_backends.FlexFieldsFilterBackend',
+        # ...        
+    ),
+    # ...
+}
+```
+
+It will make `select_related`, `prefetch_related` and select which fields should be queried by calling `fields()` for you.
+
+**WARNING:** The optimization currently works only for one nesting level
 
 # Changelog <a id="changelog"></a>
 
