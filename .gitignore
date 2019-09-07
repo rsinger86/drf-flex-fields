@@ -4,3 +4,5 @@ local-development.txt
 local-dev.txt
 dist/
 MANIFEST
+.mypy_cache/
+.vscode/
