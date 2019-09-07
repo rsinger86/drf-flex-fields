@@ -372,7 +372,7 @@ REST_FRAMEWORK = {
 }
 ```
 
-It will automatically call `select_related`, `prefetch_related` on the current QuerySet by determining which fields are needed from many-to-many and foreign key-related models. For sparse fields requests (`?omit=fieldX,fieldY` or `?fields=fieldX,fieldY`), the backend will automatically call `only(*field_names)` using only the fields needed for serialization. 
+It will automatically call `select_related` and `prefetch_related` on the current QuerySet by determining which fields are needed from many-to-many and foreign key-related models. For sparse fields requests (`?omit=fieldX,fieldY` or `?fields=fieldX,fieldY`), the backend will automatically call `only(*field_names)` using only the fields needed for serialization. 
 
 **WARNING:** The optimization currently works only for one nesting level.
 
@@ -381,6 +381,7 @@ It will automatically call `select_related`, `prefetch_related` on the current Q
 ## 0.6.0 (May 2019)
 * Adds experimental support for automatically SQL query optimization via a `FlexFieldsFilterBackend`. Thanks ADR-007!
 * Adds CircleCI config file. Thanks mikeIFTS! 
+* Moves declaration of `expandable_fields` to `Meta` class on serialzer for consistency with DRF (will continue to support declaration as class property)
 
 ## 0.5.0 (April 2019)
 * Added support for `omit` keyword for field exclusion. Code clean up and improved test coverage.
