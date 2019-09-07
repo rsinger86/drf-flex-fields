@@ -12,13 +12,22 @@ from rest_flex_fields import FlexFieldsModelSerializer
 
 
 class FlexFieldsFilterBackend(BaseFilterBackend):
-    def filter_queryset(self, request: Request, queryset: QuerySet, view: GenericViewSet):
-        if not issubclass(view.get_serializer_class(), FlexFieldsModelSerializer) or request.method != 'GET':
+    def filter_queryset(
+        self, request: Request, queryset: QuerySet, view: GenericViewSet
+    ):
+        if (
+            not issubclass(view.get_serializer_class(), FlexFieldsModelSerializer)
+            or request.method != "GET"
+        ):
             return queryset
 
-        auto_remove_fields_from_query = getattr(view, 'auto_remove_fields_from_query', True)
-        auto_select_related_on_query = getattr(view, 'auto_select_related_on_query', True)
-        required_query_fields = list(getattr(view, 'required_query_fields', []))
+        auto_remove_fields_from_query = getattr(
+            view, "auto_remove_fields_from_query", True
+        )
+        auto_select_related_on_query = getattr(
+            view, "auto_select_related_on_query", True
+        )
+        required_query_fields = list(getattr(view, "required_query_fields", []))
 
         serializer = view.get_serializer(  # type: FlexFieldsModelSerializer
             context=view.get_serializer_context()
@@ -33,28 +42,38 @@ class FlexFieldsFilterBackend(BaseFilterBackend):
         nested_model_fields = [
             self._get_field(field.source, queryset.model)
             for field in serializer.fields.values()
-            if self._get_field(field.source, queryset.model) and field.field_name in serializer.expanded_fields
+            if self._get_field(field.source, queryset.model)
+            and field.field_name in serializer.expanded_fields
         ]
 
         if auto_remove_fields_from_query:
-            queryset = queryset.only(*(required_query_fields + [
-                model_field.name
-                for model_field in model_fields
-                if not model_field.is_relation or model_field.many_to_one
-            ]))
+            queryset = queryset.only(
+                *(
+                    required_query_fields
+                    + [
+                        model_field.name
+                        for model_field in model_fields
+                        if not model_field.is_relation or model_field.many_to_one
+                    ]
+                )
+            )
 
         if auto_select_related_on_query and nested_model_fields:
-            queryset = queryset.select_related(*(
-                model_field.name
-                for model_field in nested_model_fields
-                if model_field.is_relation and model_field.many_to_one
-            ))
+            queryset = queryset.select_related(
+                *(
+                    model_field.name
+                    for model_field in nested_model_fields
+                    if model_field.is_relation and model_field.many_to_one
+                )
+            )
 
-            queryset = queryset.prefetch_related(*(
-                model_field.name
-                for model_field in nested_model_fields
-                if model_field.is_relation and not model_field.many_to_one
-            ))
+            queryset = queryset.prefetch_related(
+                *(
+                    model_field.name
+                    for model_field in nested_model_fields
+                    if model_field.is_relation and not model_field.many_to_one
+                )
+            )
 
         return queryset
 
@@ -68,41 +87,45 @@ class FlexFieldsFilterBackend(BaseFilterBackend):
             return None
 
     def get_schema_fields(self, view):
-        assert coreapi is not None, 'coreapi must be installed to use `get_schema_fields()`'
-        assert coreschema is not None, 'coreschema must be installed to use `get_schema_fields()`'
+        assert (
+            coreapi is not None
+        ), "coreapi must be installed to use `get_schema_fields()`"
+        assert (
+            coreschema is not None
+        ), "coreschema must be installed to use `get_schema_fields()`"
 
         if not issubclass(view.get_serializer_class(), FlexFieldsModelSerializer):
             return []
 
         return [
             coreapi.Field(
-                name='fields',
+                name="fields",
                 required=False,
-                location='query',
+                location="query",
                 schema=coreschema.String(
-                    title='Selected fields',
-                    description='Specify required field by comma'
+                    title="Selected fields",
+                    description="Specify required field by comma",
                 ),
-                example='field1,field2,nested.field',
+                example="field1,field2,nested.field",
             ),
             coreapi.Field(
-                name='omits',
+                name="omits",
                 required=False,
-                location='query',
+                location="query",
                 schema=coreschema.String(
-                    title='Omitted fields',
-                    description='Specify required field by comma'
+                    title="Omitted fields",
+                    description="Specify required field by comma",
                 ),
-                example='field1,field2,nested.field',
+                example="field1,field2,nested.field",
             ),
             coreapi.Field(
-                name='expand',
+                name="expand",
                 required=False,
-                location='query',
+                location="query",
                 schema=coreschema.String(
-                    title='Expanded fields',
-                    description='Specify required nested items by comma'
+                    title="Expanded fields",
+                    description="Specify required nested items by comma",
                 ),
-                example='nested1,nested2',
+                example="nested1,nested2",
             ),
         ]
