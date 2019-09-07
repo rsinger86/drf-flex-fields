@@ -109,7 +109,7 @@ class FlexFieldsFilterBackend(BaseFilterBackend):
                 example="field1,field2,nested.field",
             ),
             coreapi.Field(
-                name="omits",
+                name="omit",
                 required=False,
                 location="query",
                 schema=coreschema.String(
