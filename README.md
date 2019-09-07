@@ -1,5 +1,9 @@
 # Django REST - FlexFields
-Flexible, dynamic fields and nested models for Django REST Framework serializers. Works with both Python 2 and 3.
+
+[![Package version](https://badge.fury.io/py/django-lifecycle.svg)](https://pypi.python.org/pypi/django-lifecycle)
+[![Python versions](https://img.shields.io/pypi/status/django-lifecycle.svg)](https://img.shields.io/pypi/status/django-lifecycle.svg/)
+
+Flexible, dynamic fields and nested models for Django REST Framework serializers.
 
 # Overview
 
@@ -12,7 +16,6 @@ There are similar packages, such as the powerful [Dynamic REST](https://github.c
 Table of Contents:
 
 - [Installation](#installation)
-- [Requirements](#requirements)
 - [Basics](#basics)
 - [Dynamic Field Expansion](#dynamic-field-expansion)
   * [Deferred Fields](#deferred-fields)
@@ -36,11 +39,6 @@ Table of Contents:
 ```
 pip install drf-flex-fields
 ```
-
-# Requirements
-
-* Python >= 2.7
-* Django >= 1.8
 
 # Basics
 
@@ -382,6 +380,7 @@ It will automatically call `select_related` and `prefetch_related` on the curren
 * Adds experimental support for automatically SQL query optimization via a `FlexFieldsFilterBackend`. Thanks ADR-007!
 * Adds CircleCI config file. Thanks mikeIFTS! 
 * Moves declaration of `expandable_fields` to `Meta` class on serialzer for consistency with DRF (will continue to support declaration as class property)
+* Python 2 is no longer supported. If you need Python 2 support, you can continue to use older versions of this package.
 
 ## 0.5.0 (April 2019)
 * Added support for `omit` keyword for field exclusion. Code clean up and improved test coverage.

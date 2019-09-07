@@ -33,7 +33,7 @@ class TestFlexFieldModelSerializer(TestCase):
 
     def test_clean_fields(self):
         serializer = FlexFieldsModelSerializer()
-        serializer._fields = {"cat": 1, "dog": 2, "zebra": 3}
+        serializer.fields = {"cat": 1, "dog": 2, "zebra": 3}
         serializer._clean_fields(["cat"], [], {})
         self.assertEqual(serializer.fields, {"dog": 2, "zebra": 3})
 

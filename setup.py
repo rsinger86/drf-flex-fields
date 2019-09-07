@@ -1,12 +1,11 @@
 #!/usr/bin/env python
-from distutils.core import setup
+from setuptools import setup
 from codecs import open
-from os import path
 
-here = path.abspath(path.dirname(__file__))
 
-with open(path.join(here, "README.txt"), encoding="utf-8") as f:
-    long_description = f.read()
+def readme():
+    with open("README.md", "r") as infile:
+        return infile.read()
 
 
 classifiers = [
@@ -20,6 +19,8 @@ classifiers = [
     "Programming Language :: Python :: 3.3",
     "Programming Language :: Python :: 3.4",
     "Programming Language :: Python :: 3.5",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
 ]
 setup(
     name="drf-flex-fields",
@@ -31,6 +32,7 @@ setup(
     url="https://github.com/rsinger86/drf-flex-fields",
     license="MIT",
     keywords="django rest api dynamic fields",
-    long_description=long_description,
+    long_description=readme(),
     classifiers=classifiers,
+    long_description_content_type="text/markdown",
 )
