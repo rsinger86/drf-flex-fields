@@ -3,17 +3,15 @@ from rest_flex_fields import FlexFieldsModelSerializer
 from tests.testapp.models import Pet, Person, Company
 
 
-
 class CompanySerializer(FlexFieldsModelSerializer):
     class Meta:
-        model = Company  
+        model = Company
         fields = ['name', 'public']
-
 
 
 class PersonSerializer(FlexFieldsModelSerializer):
     class Meta:
-        model = Person  
+        model = Person
         fields = ['name', 'hobbies']
 
     expandable_fields = {
@@ -21,12 +19,11 @@ class PersonSerializer(FlexFieldsModelSerializer):
     }
 
 
-
 class PetSerializer(FlexFieldsModelSerializer):
     owner = serializers.PrimaryKeyRelatedField(queryset=Person.objects.all())
 
     class Meta:
-        model = Pet  
+        model = Pet
         fields = ['owner', 'name', 'toys', 'species']
 
     expandable_fields = {

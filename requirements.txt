@@ -1,3 +1,4 @@
-Django==2.0.2
-djangorestframework==3.7.7
-pytz==2017.3
+Django==2.2
+djangorestframework==3.9.2
+pytz==2019.1
+sqlparse==0.3.0
