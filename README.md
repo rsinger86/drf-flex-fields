@@ -65,9 +65,9 @@ class PersonSerializer(FlexFieldsModelSerializer):
         model = Person
         fields = ('id', 'name', 'country', 'occupation')
 
-    expandable_fields = {
-        'country': (CountrySerializer, {'source': 'country'})
-    }
+        expandable_fields = {
+            'country': (CountrySerializer, {'source': 'country'})
+        }
 ```
 
 Now you can make requests like ```GET /person?expand=country&fields=id,name,country``` to dynamically manipulate which fields are included, as well as expand primitive fields into nested objects. You can also use dot notation to control both the ```fields``` and ```expand``` settings at arbitrary levels of depth in your serialized responses. Read on to learn the details and see more complex examples.
@@ -91,9 +91,9 @@ class PersonSerializer(FlexFieldsModelSerializer):
         model = Person
         fields = ['id', 'name', 'country', 'occupation']
 
-    expandable_fields = {
-        'country': (CountrySerializer, {'source': 'country', 'fields': ['name']})
-    }
+        expandable_fields = {
+            'country': (CountrySerializer, {'source': 'country', 'fields': ['name']})
+        }
 ```
 
 If the default serialized response is the following:
@@ -137,9 +137,9 @@ class CountrySerializer(FlexFieldsModelSerializer):
         model = Country
         fields = ['name', 'population']
 
-    expandable_fields = {
-        'states': (StateSerializer, {'source': 'states', 'many': True})
-    }
+        expandable_fields = {
+            'states': (StateSerializer, {'source': 'states', 'many': True})
+        }
 
 class PersonSerializer(FlexFieldsModelSerializer):
     country = serializers.PrimaryKeyRelatedField(read_only=True)
@@ -148,9 +148,9 @@ class PersonSerializer(FlexFieldsModelSerializer):
         model = Person
         fields = ['id', 'name', 'country', 'occupation']
 
-    expandable_fields = {
-        'country': (CountrySerializer, {'source': 'country', 'fields': ['name']})
-    }
+        expandable_fields = {
+            'country': (CountrySerializer, {'source': 'country', 'fields': ['name']})
+        }
 ```
 
 Your default serialized response might be the following for ```person``` and ```country```, respectively:
@@ -199,9 +199,9 @@ class PersonSerializer(FlexFieldsModelSerializer):
         model = Person
         fields = ['id', 'name', 'country', 'occupation']
 
-    expandable_fields = {
-        'country': (CountrySerializer, {'source': 'country', 'expand': ['states']})
-    }
+        expandable_fields = {
+            'country': (CountrySerializer, {'source': 'country', 'expand': ['states']})
+        }
 ```
 
 ## Field Expansion on "List" Views
