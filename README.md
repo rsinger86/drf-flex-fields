@@ -357,9 +357,9 @@ Substitute the name of your Django app where the serializer is found for `<app_n
 
 This allows to reference a serializer that has not yet been defined.
 
-# Query optimization
+# Query optimization (experimental)
 
-If you want to optimize database queries you can add FlexFieldFilterBackend to `DEFAULT_FILTER_BACKENDS` in the settings:
+An experimental filter backend is available to help you automatically reduce the number of SQL queries and their transfer size. *This feature has not been tested thorougly and any help testing and reporting bugs is greatly appreciated.* You can add FlexFieldFilterBackend to `DEFAULT_FILTER_BACKENDS` in the settings:
 ```python
 # settings.py
 
@@ -372,11 +372,15 @@ REST_FRAMEWORK = {
 }
 ```
 
-It will make `select_related`, `prefetch_related` and select which fields should be queried by calling `fields()` for you.
+It will automatically call `select_related`, `prefetch_related` on the current QuerySet by determining which fields are needed from many-to-many and foreign key-related models. For sparse fields requests (`?omit=fieldX,fieldY` or `?fields=fieldX,fieldY`), the backend will automatically call `only(*field_names)` using only the fields needed for serialization. 
 
-**WARNING:** The optimization currently works only for one nesting level
+**WARNING:** The optimization currently works only for one nesting level.
 
 # Changelog <a id="changelog"></a>
+
+## 0.6.0 (May 2019)
+* Adds experimental support for automatically SQL query optimization via a `FlexFieldsFilterBackend`. Thanks ADR-007!
+* Adds CircleCI config file. Thanks mikeIFTS! 
 
 ## 0.5.0 (April 2019)
 * Added support for `omit` keyword for field exclusion. Code clean up and improved test coverage.
