@@ -26,7 +26,7 @@ Table of Contents:
 - [Combining Dynamically-Set Fields and Field Expansion](#combining-dynamically-set-fields-and-field-expansion)
 - [Serializer Introspection](#serializer-introspection)
 - [Lazy evaluation of serializer](#lazy-evaluation-of-serializer)
-- [Query optimization](#query-optimization)
+- [Query optimization (experimental)](#query-optimization-experimental)
 - [Change Log](#changelog)
 - [Testing](#testing)
 - [License](#license)
