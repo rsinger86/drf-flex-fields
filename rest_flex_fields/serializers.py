@@ -53,7 +53,7 @@ class FlexFieldsSerializerMixin(object):
         """
         Returns an instance of the dynamically created nested serializer.
         """
-        field_options = self.expandable_fields[name]
+        field_options = self._expandable_fields[name]
         serializer_class = field_options[0]
         serializer_settings = copy.deepcopy(field_options[1])
 
@@ -137,12 +137,12 @@ class FlexFieldsSerializerMixin(object):
             return []
 
         if "~all" in expand_fields or "*" in expand_fields:
-            expand_fields = self.expandable_fields.keys()
+            expand_fields = self._expandable_fields.keys()
 
         accum = []
 
         for name in expand_fields:
-            if name not in self.expandable_fields:
+            if name not in self._expandable_fields:
                 continue
 
             if not self._should_field_exist(
@@ -153,6 +153,16 @@ class FlexFieldsSerializerMixin(object):
             accum.append(name)
 
         return accum
+
+    @property
+    def _expandable_fields(self) -> dict:
+        """ It's more consistent with DRF to declare the expandable fields
+            on the Meta class, however we need to support both places
+            for legacy reasons. """
+        if hasattr(self, "Meta") and hasattr(self.Meta, "expandable_fields"):
+            return self.Meta.expandable_fields
+
+        return self.expandable_fields
 
     @property
     def _can_access_request(self):

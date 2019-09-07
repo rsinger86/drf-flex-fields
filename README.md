@@ -26,6 +26,7 @@ Table of Contents:
 - [Combining Dynamically-Set Fields and Field Expansion](#combining-dynamically-set-fields-and-field-expansion)
 - [Serializer Introspection](#serializer-introspection)
 - [Lazy evaluation of serializer](#lazy-evaluation-of-serializer)
+- [Query optimization](#query-optimization)
 - [Change Log](#changelog)
 - [Testing](#testing)
 - [License](#license)
@@ -64,9 +65,9 @@ class PersonSerializer(FlexFieldsModelSerializer):
         model = Person
         fields = ('id', 'name', 'country', 'occupation')
 
-    expandable_fields = {
-        'country': (CountrySerializer, {'source': 'country'})
-    }
+        expandable_fields = {
+            'country': (CountrySerializer, {'source': 'country'})
+        }
 ```
 
 Now you can make requests like ```GET /person?expand=country&fields=id,name,country``` to dynamically manipulate which fields are included, as well as expand primitive fields into nested objects. You can also use dot notation to control both the ```fields``` and ```expand``` settings at arbitrary levels of depth in your serialized responses. Read on to learn the details and see more complex examples.
@@ -90,9 +91,9 @@ class PersonSerializer(FlexFieldsModelSerializer):
         model = Person
         fields = ['id', 'name', 'country', 'occupation']
 
-    expandable_fields = {
-        'country': (CountrySerializer, {'source': 'country', 'fields': ['name']})
-    }
+        expandable_fields = {
+            'country': (CountrySerializer, {'source': 'country', 'fields': ['name']})
+        }
 ```
 
 If the default serialized response is the following:
@@ -136,9 +137,9 @@ class CountrySerializer(FlexFieldsModelSerializer):
         model = Country
         fields = ['name', 'population']
 
-    expandable_fields = {
-        'states': (StateSerializer, {'source': 'states', 'many': True})
-    }
+        expandable_fields = {
+            'states': (StateSerializer, {'source': 'states', 'many': True})
+        }
 
 class PersonSerializer(FlexFieldsModelSerializer):
     country = serializers.PrimaryKeyRelatedField(read_only=True)
@@ -147,9 +148,9 @@ class PersonSerializer(FlexFieldsModelSerializer):
         model = Person
         fields = ['id', 'name', 'country', 'occupation']
 
-    expandable_fields = {
-        'country': (CountrySerializer, {'source': 'country', 'fields': ['name']})
-    }
+        expandable_fields = {
+            'country': (CountrySerializer, {'source': 'country', 'fields': ['name']})
+        }
 ```
 
 Your default serialized response might be the following for ```person``` and ```country```, respectively:
@@ -198,9 +199,9 @@ class PersonSerializer(FlexFieldsModelSerializer):
         model = Person
         fields = ['id', 'name', 'country', 'occupation']
 
-    expandable_fields = {
-        'country': (CountrySerializer, {'source': 'country', 'expand': ['states']})
-    }
+        expandable_fields = {
+            'country': (CountrySerializer, {'source': 'country', 'expand': ['states']})
+        }
 ```
 
 ## Field Expansion on "List" Views
@@ -356,7 +357,31 @@ Substitute the name of your Django app where the serializer is found for `<app_n
 
 This allows to reference a serializer that has not yet been defined.
 
+# Query optimization (experimental)
+
+An experimental filter backend is available to help you automatically reduce the number of SQL queries and their transfer size. *This feature has not been tested thorougly and any help testing and reporting bugs is greatly appreciated.* You can add FlexFieldFilterBackend to `DEFAULT_FILTER_BACKENDS` in the settings:
+```python
+# settings.py
+
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': (
+        'rest_flex_fields.filter_backends.FlexFieldsFilterBackend',
+        # ...        
+    ),
+    # ...
+}
+```
+
+It will automatically call `select_related` and `prefetch_related` on the current QuerySet by determining which fields are needed from many-to-many and foreign key-related models. For sparse fields requests (`?omit=fieldX,fieldY` or `?fields=fieldX,fieldY`), the backend will automatically call `only(*field_names)` using only the fields needed for serialization. 
+
+**WARNING:** The optimization currently works only for one nesting level.
+
 # Changelog <a id="changelog"></a>
+
+## 0.6.0 (May 2019)
+* Adds experimental support for automatically SQL query optimization via a `FlexFieldsFilterBackend`. Thanks ADR-007!
+* Adds CircleCI config file. Thanks mikeIFTS! 
+* Moves declaration of `expandable_fields` to `Meta` class on serialzer for consistency with DRF (will continue to support declaration as class property)
 
 ## 0.5.0 (April 2019)
 * Added support for `omit` keyword for field exclusion. Code clean up and improved test coverage.
