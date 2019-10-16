@@ -1,11 +1,4 @@
-try:
-    # Python 3
-    from collections.abc import Iterable
-    string_types = (str,)
-except ImportError:
-    # Python 2
-    from collections import Iterable
-    string_types = (str, unicode)
+from collections.abc import Iterable
 
 
 def is_expanded(request, key):
@@ -37,7 +30,7 @@ def split_levels(fields):
         isinstance(fields, Iterable)
     ), "`fields` must be iterable (e.g. list, tuple, or generator)"
 
-    if isinstance(fields, string_types):
+    if isinstance(fields, str):
         fields = [a.strip() for a in fields.split(",") if a.strip()]
     for e in fields:
         if "." in e:
