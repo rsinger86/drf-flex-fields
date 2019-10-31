@@ -1,12 +1,13 @@
 from unittest.mock import MagicMock
 from unittest import TestCase
 from rest_framework import serializers
+from django.utils.datastructures import MultiValueDict
 
 from rest_flex_fields import FlexFieldsModelSerializer
 
 
 class MockRequest(object):
-    def __init__(self, query_params={}, method="GET"):
+    def __init__(self, query_params=MultiValueDict(), method="GET"):
         self.query_params = query_params
         self.method = method
 
@@ -100,7 +101,7 @@ class TestFlexFieldModelSerializer(TestCase):
         serializer = FlexFieldsModelSerializer(context={})
 
         serializer.context["request"] = MockRequest(
-            method="GET", query_params={"omit": "cat,dog"}
+            method="GET", query_params=MultiValueDict({"omit": ["cat,dog"]})
         )
 
         result = serializer._get_omit_input({"omit": []})
@@ -120,7 +121,7 @@ class TestFlexFieldModelSerializer(TestCase):
         serializer = FlexFieldsModelSerializer(context={})
 
         serializer.context["request"] = MockRequest(
-            method="GET", query_params={"fields": "cat,dog"}
+            method="GET", query_params=MultiValueDict({"fields": ["cat,dog"]})
         )
 
         result = serializer._get_fields_input({"fields": []})
@@ -140,7 +141,7 @@ class TestFlexFieldModelSerializer(TestCase):
         serializer = FlexFieldsModelSerializer(context={})
 
         serializer.context["request"] = MockRequest(
-            method="GET", query_params={"expand": "cat,dog"}
+            method="GET", query_params=MultiValueDict({"expand": ["cat,dog"]})
         )
 
         result = serializer._get_expand_input({"expand": []})
@@ -150,7 +151,7 @@ class TestFlexFieldModelSerializer(TestCase):
         serializer = FlexFieldsModelSerializer(context={})
 
         serializer.context["request"] = MockRequest(
-            method="GET", query_params={"expand": "cat,dog"}
+            method="GET", query_params=MultiValueDict({"expand": ["cat,dog"]})
         )
 
         serializer.context["permitted_expands"] = ["cat"]
@@ -158,14 +159,19 @@ class TestFlexFieldModelSerializer(TestCase):
         self.assertEqual(result, ["cat"])
 
     def test_parse_request_list_value(self):
-        serializer = FlexFieldsModelSerializer(context={})
+        test_params = [
+            {"abc": ["cat,dog,mouse"]},
+            {"abc": ["cat", "dog", "mouse"]},
+            {"abc[]": ["cat", "dog", "mouse"]},
+        ]
+        for query_params in test_params:
+            serializer = FlexFieldsModelSerializer(context={})
+            serializer.context["request"] = MockRequest(
+                method="GET", query_params=MultiValueDict(query_params)
+            )
 
-        serializer.context["request"] = MockRequest(
-            method="GET", query_params={"abc": "cat,dog,mouse"}
-        )
-
-        result = serializer._parse_request_list_value("abc")
-        self.assertEqual(result, ["cat", "dog", "mouse"])
+            result = serializer._parse_request_list_value("abc")
+            self.assertEqual(result, ["cat", "dog", "mouse"])
 
     def test_parse_request_list_value_empty_if_cannot_access_request(self):
         serializer = FlexFieldsModelSerializer(context={})

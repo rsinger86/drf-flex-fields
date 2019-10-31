@@ -1,6 +1,7 @@
 import unittest
 
 from rest_framework import serializers
+from django.utils.datastructures import MultiValueDict
 
 from rest_flex_fields import FlexFieldsModelSerializer
 from tests.testapp.models import Company, Person, Pet
@@ -141,7 +142,7 @@ class TestSerialize(unittest.TestCase):
                          employer=Company(name='McDonalds'))
         )
 
-        request = MockRequest(query_params={'expand': 'owner.employer'})
+        request = MockRequest(query_params=MultiValueDict({'expand': ['owner.employer']}))
         serializer = PetSerializer(pet, context={'request': request})
 
         self.assertEqual(serializer.data, {
