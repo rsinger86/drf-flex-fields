@@ -2,7 +2,7 @@ appdirs==1.4.3
 attrs==19.1.0
 black==19.3b0
 Click==7.0
-Django==2.2.5
+Django==2.2.8
 djangorestframework==3.10.3
 entrypoints==0.3
 flake8==3.7.7
