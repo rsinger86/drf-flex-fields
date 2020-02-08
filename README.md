@@ -376,6 +376,10 @@ It will automatically call `select_related` and `prefetch_related` on the curren
 
 # Changelog <a id="changelog"></a>
 
+## 0.7.0 (February 2020)
+* Adds support for different ways of passing arrays in query strings. Thanks @sentyaev!
+* Fixes attribute error when map is supplied to split levels utility function. Thanks @hemache!
+
 ## 0.6.1 (September 2019)
 * Adds experimental support for automatically SQL query optimization via a `FlexFieldsFilterBackend`. Thanks ADR-007!
 * Adds CircleCI config file. Thanks mikeIFTS! 
