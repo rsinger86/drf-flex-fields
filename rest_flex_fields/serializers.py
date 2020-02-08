@@ -54,25 +54,30 @@ class FlexFieldsSerializerMixin(object):
         Returns an instance of the dynamically created nested serializer.
         """
         field_options = self._expandable_fields[name]
-        serializer_class = field_options[0]
-        serializer_settings = copy.deepcopy(field_options[1])
+
+        if isinstance(field_options, tuple):
+            serializer_class = field_options[0]
+            settings = copy.deepcopy(field_options[1]) if len(field_options) > 1 else {}
+        else:
+            serializer_class = field_options
+            settings = {}
 
         if name in nested_expand:
-            serializer_settings["expand"] = nested_expand[name]
+            settings["expand"] = nested_expand[name]
 
         if name in nested_fields:
-            serializer_settings["fields"] = nested_fields[name]
+            settings["fields"] = nested_fields[name]
 
         if name in nested_omit:
-            serializer_settings["omit"] = nested_omit[name]
+            settings["omit"] = nested_omit[name]
 
-        if serializer_settings.get("source") == name:
-            del serializer_settings["source"]
+        if settings.get("source") == name:
+            del settings["source"]
 
         if type(serializer_class) == str:
             serializer_class = self._import_serializer_class(serializer_class)
 
-        return serializer_class(**serializer_settings)
+        return serializer_class(**settings)
 
     def _import_serializer_class(self, location):
         """
@@ -202,7 +207,7 @@ class FlexFieldsSerializerMixin(object):
 
         values = self.context["request"].query_params.getlist(field)
         if not values:
-            values = self.context["request"].query_params.getlist('{}[]'.format(field))
+            values = self.context["request"].query_params.getlist("{}[]".format(field))
 
         if values and len(values) == 1:
             return values[0].split(",")

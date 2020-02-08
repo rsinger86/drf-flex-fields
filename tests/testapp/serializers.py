@@ -13,7 +13,7 @@ class PersonSerializer(FlexFieldsModelSerializer):
     class Meta:
         model = Person
         fields = ["name", "hobbies"]
-        expandable_fields = {"employer": (CompanySerializer, {"source": "employer"})}
+        expandable_fields = {"employer": (CompanySerializer,)}
 
 
 class PetSerializer(FlexFieldsModelSerializer):
@@ -22,4 +22,4 @@ class PetSerializer(FlexFieldsModelSerializer):
     class Meta:
         model = Pet
         fields = ["owner", "name", "toys", "species"]
-        expandable_fields = {"owner": (PersonSerializer, {"source": "owner"})}
+        expandable_fields = {"owner": PersonSerializer}
