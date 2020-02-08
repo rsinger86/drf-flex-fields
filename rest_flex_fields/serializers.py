@@ -20,9 +20,9 @@ class FlexFieldsSerializerMixin(object):
         self.expanded_fields = []
 
         passed = {
-            "expand": kwargs.pop("expand", []),
-            "fields": kwargs.pop("fields", []),
-            "omit": kwargs.pop("omit", []),
+            "expand": list(kwargs.pop("expand", [])),
+            "fields": list(kwargs.pop("fields", [])),
+            "omit": list(kwargs.pop("omit", [])),
         }
 
         super(FlexFieldsSerializerMixin, self).__init__(*args, **kwargs)

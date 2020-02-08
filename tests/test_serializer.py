@@ -25,12 +25,16 @@ class TestSerialize(unittest.TestCase):
             owner=Person(name='Fred')
         )
 
-        serializer = PetSerializer(pet, omit=['species', 'owner'])
-
-        self.assertEqual(serializer.data, {
+        expected_serializer_data = {
             'name': 'Garfield',
             'toys': 'paper ball, string'
-        })
+        }
+
+        serializer = PetSerializer(pet, omit=['species', 'owner'])
+        self.assertEqual(serializer.data, expected_serializer_data)
+
+        serializer = PetSerializer(pet, omit=(field for field in ('species', 'owner')))
+        self.assertEqual(serializer.data, expected_serializer_data)
 
     def test_nested_field_omit(self):
         pet = Pet(
@@ -40,13 +44,7 @@ class TestSerialize(unittest.TestCase):
             owner=Person(name='Fred', employer=Company(name='McDonalds'))
         )
 
-        serializer = PetSerializer(
-            pet,
-            expand=['owner.employer'],
-            omit=['owner.name', 'owner.employer.public']
-        )
-
-        self.assertEqual(serializer.data, {
+        expected_serializer_data = {
             'name': 'Garfield',
             'toys': 'paper ball, string',
             'species': 'cat',
@@ -56,7 +54,21 @@ class TestSerialize(unittest.TestCase):
                    'name': 'McDonalds'
                 }
             }
-        })
+        }
+
+        serializer = PetSerializer(
+            pet,
+            expand=['owner.employer'],
+            omit=['owner.name', 'owner.employer.public']
+        )
+        self.assertEqual(serializer.data, expected_serializer_data)
+
+        serializer = PetSerializer(
+            pet,
+            expand=(field for field in ('owner.employer',)),
+            omit=(field for field in ('owner.name', 'owner.employer.public'))
+        )
+        self.assertEqual(serializer.data, expected_serializer_data)
 
     def test_basic_field_include(self):
         pet = Pet(
@@ -66,11 +78,16 @@ class TestSerialize(unittest.TestCase):
             owner=Person(name='Fred')
         )
 
-        serializer = PetSerializer(pet, fields=['name', 'toys'])
-        self.assertEqual(serializer.data, {
+        expected_serializer_data = {
             'name': 'Garfield',
             'toys': 'paper ball, string'
-        })
+        }
+
+        serializer = PetSerializer(pet, fields=['name', 'toys'])
+        self.assertEqual(serializer.data, expected_serializer_data)
+
+        serializer = PetSerializer(pet, fields=(field for field in ('name', 'toys')))
+        self.assertEqual(serializer.data, expected_serializer_data)
 
     def test_nested_field_include(self):
         pet = Pet(
@@ -80,15 +97,21 @@ class TestSerialize(unittest.TestCase):
             owner=Person(name='Fred', employer=Company(name='McDonalds'))
         )
 
-        serializer = PetSerializer(pet, expand=['owner.employer'], fields=[
-                                   'owner.employer.name'])
-        self.assertEqual(serializer.data, {
+        expected_serializer_data = {
             'owner': {
                 'employer': {
                     'name': 'McDonalds'
                 }
             }
-        })
+        }
+
+        serializer = PetSerializer(pet, expand=['owner.employer'], fields=[
+                                   'owner.employer.name'])
+        self.assertEqual(serializer.data, expected_serializer_data)
+
+        serializer = PetSerializer(pet, expand=(field for field in ('owner.employer',)),
+                                    fields=(field for field in ('owner.employer.name',)))
+        self.assertEqual(serializer.data, expected_serializer_data)
 
     def test_basic_expand(self):
         pet = Pet(
@@ -98,8 +121,7 @@ class TestSerialize(unittest.TestCase):
             owner=Person(name='Fred', hobbies='sailing')
         )
 
-        serializer = PetSerializer(pet, expand=['owner'])
-        self.assertEqual(serializer.data, {
+        expected_serializer_data = {
             'name': 'Garfield',
             'toys': 'paper ball, string',
             'species': 'cat',
@@ -107,7 +129,13 @@ class TestSerialize(unittest.TestCase):
                 'name': 'Fred',
                 'hobbies': 'sailing'
             }
-        })
+        }
+
+        serializer = PetSerializer(pet, expand=['owner'])
+        self.assertEqual(serializer.data, expected_serializer_data)
+
+        serializer = PetSerializer(pet, expand=(field for field in ('owner',)))
+        self.assertEqual(serializer.data, expected_serializer_data)
 
     def test_nested_expand(self):
         pet = Pet(
@@ -118,8 +146,7 @@ class TestSerialize(unittest.TestCase):
                          employer=Company(name='McDonalds'))
         )
 
-        serializer = PetSerializer(pet, expand=['owner.employer'])
-        self.assertEqual(serializer.data, {
+        expected_serializer_data = {
             'name': 'Garfield',
             'toys': 'paper ball, string',
             'species': 'cat',
@@ -131,7 +158,13 @@ class TestSerialize(unittest.TestCase):
                     'name': 'McDonalds'
                 }
             }
-        })
+        }
+
+        serializer = PetSerializer(pet, expand=['owner.employer'])
+        self.assertEqual(serializer.data, expected_serializer_data)
+
+        serializer = PetSerializer(pet, expand=(field for field in ('owner.employer',)))
+        self.assertEqual(serializer.data, expected_serializer_data)
 
     def test_expand_from_request(self):
         pet = Pet(

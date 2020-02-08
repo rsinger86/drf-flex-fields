@@ -1,3 +1,6 @@
+from collections.abc import Iterable
+
+
 def is_expanded(request, key):
     """ Examines request object to return boolean of whether
         passed field is expanded.
@@ -23,7 +26,11 @@ def split_levels(fields):
     if not fields:
         return first_level_fields, next_level_fields
 
-    if not isinstance(fields, list):
+    assert (
+        isinstance(fields, Iterable)
+    ), "`fields` must be iterable (e.g. list, tuple, or generator)"
+
+    if isinstance(fields, str):
         fields = [a.strip() for a in fields.split(",") if a.strip()]
     for e in fields:
         if "." in e:
