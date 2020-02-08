@@ -200,8 +200,13 @@ class FlexFieldsSerializerMixin(object):
         if not self._can_access_request:
             return []
 
-        value = self.context["request"].query_params.get(field)
-        return value.split(",") if value else []
+        values = self.context["request"].query_params.getlist(field)
+        if not values:
+            values = self.context["request"].query_params.getlist('{}[]'.format(field))
+
+        if values and len(values) == 1:
+            return values[0].split(",")
+        return values or []
 
     def _get_expand_input(self, passed_settings):
         """
