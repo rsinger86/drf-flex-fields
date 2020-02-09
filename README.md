@@ -1,6 +1,6 @@
 # Django REST - FlexFields
 
-[![Package version](https://badge.fury.io/py/drf-flex-fields.svg)](https://pypi.python.org/pypi/django-lifecycle)
+[![Package version](https://badge.fury.io/py/drf-flex-fields.svg)](https://pypi.python.org/pypi/drf-flex-fields)
 [![Python versions](https://img.shields.io/pypi/status/drf-flex-fields.svg)](https://img.shields.io/pypi/status/django-lifecycle.svg/)
 
 Flexible, dynamic fields and nested models for Django REST Framework serializers.
