@@ -7,3 +7,4 @@ MANIFEST
 .mypy_cache/
 .vscode/
 drf_flex_fields.egg-info/
+venv.sh
