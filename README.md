@@ -7,31 +7,92 @@ Flexible, dynamic fields and nested models for Django REST Framework serializers
 
 # Overview
 
-FlexFields (DRF-FF) for [Django REST Framework](https://django-rest-framework.org) is a package designed to provide a common baseline of functionality for dynamically setting fields and nested models within DRF serializers. To remove unneeded fields, you can dynamically set fields, including nested fields, via URL parameters ```(?fields=name,address.zip)``` or when configuring serializers. Additionally, you can dynamically expand fields from simple values to complex nested models, or treat fields as "deferred", and expand them on an as-needed basis.
+FlexFields (DRF-FF) for [Django REST Framework](https://django-rest-framework.org) is a package designed to provide a common baseline of functionality for dynamically setting fields and nested models within DRF serializers. This package is designed for simplicity, with minimal magic and entanglement with DRF's foundational classes.
 
-This package is designed for simplicity and provides two classes - a ViewSet class and a serializer class (or mixin) - with minimal magic and entanglement with DRF's foundational classes. Unless DRF makes significant changes to its serializers, you can count on this package to work (and if major changes are made, this package will be updated shortly thereafter). If you are familar with Django REST Framework, it shouldn't take you long to read over the code and see how it works.
+Key benefits:
+* Easily set up fields that be expanded to their fully serialized counterparts via query parameters (`users/?expand=organization,friends`)
+* Select a subset of fields by either:
+  * specifying which ones should be included (`users/?fields=id,first_name`)
+  * specifying which ones should be excluded (`users/?omit=id,first_name`)
+* Use dot notation to dynamically modify fields at arbitrary depths (`users/?expand=organization.owner.roles`)
+* Flexible API - options can also be passed directly to a serializer: `UserSerializer(obj, expand=['organization'])`
 
-There are similar packages, such as the powerful [Dynamic REST](https://github.com/AltSchool/dynamic-rest), which does what this package does and more, but you may not need all those bells and whistles. There is also the more basic [Dynamic Fields Mixin](https://github.com/dbrgn/drf-dynamic-fields), but it lacks functionality for field expansion and dot-notation field customiziation.
+# Quick Start
 
-Table of Contents:
+```python
+from rest_flex_fields import FlexFieldsModelSerializer
+
+class StateSerializer(FlexFieldsModelSerializer):
+    class Meta:
+        model = Country
+        fields = ('id', 'name')
+
+class CountrySerializer(FlexFieldsModelSerializer):
+    class Meta:
+        model = Country
+        fields = ('id', 'name', 'population', 'states')
+        expandable_fields = {
+          'states': (StateSerializer, {'many': True})
+        }
+
+class PersonSerializer(FlexFieldsModelSerializer):
+    class Meta:
+        model = Person
+        fields = ('id', 'name', 'country', 'occupation')
+        expandable_fields = {'country': CountrySerializer}
+```
+
+```
+GET /people/142/
+```
+```json
+{
+  "id": 142,
+  "name": "Jim Halpert",
+  "country": 1
+}
+```
+
+```
+GET /people/142/?expand=country.states
+```
+```json
+{
+  "id": 142,
+  "name": "Jim Halpert",
+  "country": {
+    "id": 1,
+    "name": "United States",
+    "states": [
+      {
+        "id": 23,
+        "name": "Ohio"
+      },
+      {
+        "id": 2,
+        "name": "Pennsylvania"
+      }
+    ]
+  }
+}
+```
+# Table of Contents:
 
 - [Installation](#installation)
-- [Quick Start](#quick-start)
 - [Usage](#usage)
-  * [Dynamic Field Expansion](#dynamic-field-expansion)
-  * [Deferred Fields](#deferred-fields)
-  * [Deep, Nested Expansion](#deep-nested-expansion)
-  * [Field Expansion on "List" Views](#list-views)
-  * [Expanding a "Many" Relationship](#expanding-many)
-  * [Use "~all" to Expand All Available Fields](#use-all)
-  * [Dynamically Setting Fields/Sparse Fieldsets](#dynamically-setting-fields)
-    * [From URL Parameters](#from-url-parameters)
-    * [Using as Primary Field Definition](#as-primary-field-definition)
-  * [Combining Dynamically-Set Fields and Field Expansion](#combining-dynamically-set-fields-and-field-expansion)
+  * [Dynamic field expansion](#dynamic-field-expansion)
+  * [Deferred fields](#deferred-fields)
+  * [Deep, nested Expansion](#deep-nested-expansion)
+  * [Field expansion on "list" views](#list-views)
+  * [Expanding a "many" relationship](#expanding-many)
+  * [Dynamically setting fields (sparse fields)](#dynamically-setting-fields)
+  * [Reference serializer as a string (lazy evaluation)](#lazy-ref)
+  * [Increase re-usability of serializers](#increased-reuse)
 - [Serializer Options - Overview](#options)
 - [Advanced](#advanced)
-  * [Serializer Introspection](#serializer-introspection)
-  * [Lazy evaluation of serializer](#lazy-evaluation-of-serializer)
+  * [Serializer introspection](#serializer-introspection)
+  * [Use "~all" to expand all available fields](#use-all)
+  * [Combining sparse and expanded fields](#combining-sparse-and-expanded)
   * [Query optimization (experimental)](#query-optimization-experimental)
 - [Change Log](#changelog)
 - [Testing](#testing)
@@ -43,47 +104,34 @@ Table of Contents:
 pip install drf-flex-fields
 ```
 
-# Quick Start
+# Usage
 
-Subclass `FlexFieldsModelSerializer` and add an `expandable_fields` dictionary to your serializer's `Meta` class. Key the dictionary with the name of the field that you want to dynamically expand, and set its value to either the expanded serializer or a tuple where the first element is the serializer and the second is a dictionary of options that will be used to instantiate the serializer.
+## Setup
 
+
+Have your serializers subclass `FlexFieldsModelSerializer`:
 ```python
 from rest_flex_fields import FlexFieldsModelSerializer
-
 
 class StateSerializer(FlexFieldsModelSerializer):
     class Meta:
         model = Country
-        fields = ('id', 'name', 'capital_city')
+        fields = ('id', 'name')
 
 class CountrySerializer(FlexFieldsModelSerializer):
     class Meta:
         model = Country
         fields = ('id', 'name', 'population', 'states')
-
         expandable_fields = {
-            'states': (StateSerializer, {'many': True})
-        }
-
-class PersonSerializer(FlexFieldsModelSerializer):
-    class Meta:
-        model = Person
-        fields = ('id', 'name', 'country', 'occupation')
-
-        expandable_fields = {
-            'country': CountrySerializer
+          'states': (StateSerializer, {'many': True})
         }
 ```
 
-Now you can make requests like ```GET /person?expand=country.states&fields=id,name,country,states``` to dynamically manipulate which fields are included, as well as expand primitive fields into nested objects. You can also use dot notation to control both the ```fields``` and ```expand``` settings at arbitrary levels of depth in your serialized responses. Read on to learn the details and see more complex examples.
-
-:heavy_check_mark: The examples below subclass `FlexFieldsModelSerializer`, but the same can be accomplished by mixing in `FlexFieldsSerializerMixin`, which is also importable from the same `rest_flex_fields` package.
-
-# Usage
+Alternatively, you can add the `FlexFieldsSerializerMixin` mixin to a model serializer.
 
 ## Dynamic Field Expansion
 
-To define an expandable field, add it to the ```expandable_fields``` within your serializer:
+To define expandable fields, add an `expandable_fields` dictionary to your serializer's `Meta` class. Key the dictionary with the name of the field that you want to dynamically expand, and set its value to either the expanded serializer or a tuple where the first element is the serializer and the second is a dictionary of options that will be used to instantiate the serializer.
 
 ```python
 class CountrySerializer(FlexFieldsModelSerializer):
@@ -100,7 +148,7 @@ class PersonSerializer(FlexFieldsModelSerializer):
         fields = ['id', 'name', 'country', 'occupation']
 
         expandable_fields = {
-            'country': (CountrySerializer, {'fields': ['name']})
+            'country': CountrySerializer
         }
 ```
 
@@ -113,19 +161,19 @@ If the default serialized response is the following:
   "occupation" : "Programmer",
 }
 ```
-When you do a ```GET /person/13322?expand=country```, the response will change to:
+When you do a `GET /person/13322?expand=country`, the response will change to:
 
 ```json
 {
   "id" : 13322,
   "name" : "John Doe",
   "country" : {
-    "name" : "United States"
+    "name" : "United States",
+    "population": 330000000
   },
   "occupation" : "Programmer",
 }
 ```
-Notice how ```population``` was ommitted from the nested ```country``` object. This is because ```fields``` was set to ```['name']``` when passed to the embedded ```CountrySerializer```. You will learn more about this later on.
 
 ## Deferred Fields
 Alternatively, you could treat ```country``` as a "deferred" field by not defining it among the default fields. To make a field deferred, only define it within the serializer's ```expandable_fields```.
@@ -157,11 +205,11 @@ class PersonSerializer(FlexFieldsModelSerializer):
         fields = ['id', 'name', 'country', 'occupation']
 
         expandable_fields = {
-            'country': (CountrySerializer, {'fields': ['name']})
+            'country': CountrySerializer
         }
 ```
 
-Your default serialized response might be the following for ```person``` and ```country```, respectively:
+Your default serialized response might be the following for `person` and `country`, respectively:
 ```json
 {
   "id" : 13322,
@@ -198,10 +246,7 @@ Please be kind to your database, as this could incur many additional queries. Th
 
 ## Field Expansion on "List" Views <a id="list-views"></a>
 
-By default, when subclassing ```FlexFieldsModelViewSet```, you can only expand fields when you are retrieving single resources, in order to protect yourself from careless clients. However, if you would like to make a field expandable even when listing collections, you can add the field's name to the ```permit_list_expands``` property on the viewset. Just make sure you are wisely using ```select_related``` and ```prefetch_related``` in the viewset's queryset. You can take advantage of a utility function, ```is_expanded()``` to adjust the queryset accordingly.
-
-
-Example:
+If you request many objects, expanding fields could lead to many database queries. Subclass `FlexFieldsModelViewSet` if you want to prevent expanding fields by default when calling a ViewSet's `list` method. List those fields that you would like to expand in a `permit_list_expands` property on the ViewSet:
 
 ```python
 from drf_flex_fields import is_expanded
@@ -215,9 +260,9 @@ class PersonViewSet(FlexFieldsModelViewSet):
         if is_expanded(self.request, 'employer'):
             queryset = queryset.select_related('employer')
         return queryset
-
-
 ```
+
+Notice how this example is using the `is_expanded` utility method as well as `select_related` and `prefetch_related` to efficiently query the database if the field is expanded.
 
 ## Expanding a "Many" Relationship <a id="expanding-many"></a>
 Set `many` to `True` in the serializer options to make sure "to many" fields are expanded correctly.
@@ -258,17 +303,9 @@ A request to ```GET /countries?expand=states``` will return:
 }
 ```
 
-## Use "~all" to Expand All Available Fields <a id="use-all"></a>
-
-You can set ```expand=~all``` to automatically expand all fields that are available for expansion. This will take effect only for the top-level serializer; if you need to also expand fields that are present on deeply nested models, then you will need to explicitly pass their values using dot notation.
-
 ## Dynamically Setting Fields (Sparse Fields) <a id="dynamically-setting-fields"></a>
 
-You can use either they `fields` or `omit` keywords to declare only the fields you want to include or to specify fields that should be excluded.
-
-### From URL Parameters
-
-You can dynamically set fields, with the configuration originating from the URL parameters or serializer options.
+You can use either the `fields` or `omit` keywords to declare only the fields you want to include or to specify fields that should be excluded.
 
 Consider this as a default serialized response:
 ```json
@@ -283,7 +320,7 @@ Consider this as a default serialized response:
   "hobbies" : ["rock climbing", "sipping coffee"]
 }
 ```
-To whittle down the fields via URL parameters, simply add ```?fields=id,name,country``` to your requests to get back:
+To whittle down the fields via URL parameters, simply add `?fields=id,name,country` to your requests to get back:
 ```json
 {
   "id" : 13322,
@@ -314,9 +351,21 @@ Or, if you want to leave out the nested country object, do ```?omit=country```:
 }
 ```
 
-### From Primary Field Definition <a id="as-primary-field-definition"></a>
+## Reference serializer as a string (lazy evaluation) <a id="lazy-ref"></a>
 
-You could accomplish the same outcome as the example above by passing options to your serializers. With this approach, you lose runtime dynamism, but gain the ability to re-use serializers, rather than creating a simplified copy of a serializer for the purposes of embedding it.  The example below uses the `fields` keyword, but you can also pass in keyword argument for `omit` to exclude specific fields. 
+To avoid circular import problems, it's possible to lazily evaluate a string reference to you serializer class using this syntax:
+
+```python
+expandable_fields = {
+    'record_set': ('<app_name>.RelatedSerializer', {'many': True})
+}
+```
+
+Substitute the name of your Django app where the serializer is found for `<app_name>`.
+
+## Increased re-usability of serializers <a id="increased-reuse"></a>
+
+The `omit` and `fields` options can be passed directly to serializers. Rather than defining a slimmer version of a regular serializer, you can re-use a serializer and declare which fields you want.
 
 ```python
 from rest_flex_fields import FlexFieldsModelSerializer
@@ -324,22 +373,24 @@ from rest_flex_fields import FlexFieldsModelSerializer
 class CountrySerializer(FlexFieldsModelSerializer):
     class Meta:
         model = Country
-        fields = ['id', 'name', 'population']
+        fields = ['id', 'name', 'population', 'capital', 'square_miles']
 
 class PersonSerializer(FlexFieldsModelSerializer):
-    country: CountrySerializer(fields=['name'])
+    country = CountrySerializer(fields=['id', 'name'])
+
     class Meta:
         model = Person
-        fields = ['id', 'name', 'country', 'occupation', 'hobbies']
+        fields = ['id', 'name', 'country']
 
 
-serializer = PersonSerializer(person, fields=["id", "name", "country.name"])
+serializer = PersonSerializer(person)
 print(serializer.data)
 
 >>>{
   "id": 13322,
   "name": "John Doe",
   "country": {
+    "id": 1,
     "name": "United States",
   }
 }
@@ -385,9 +436,17 @@ class PersonSerializer(FlexFieldsModelSerializer):
 
 # Advanced
 
-## Combining Dynamically Set Fields and Field Expansion
+## Serializer Introspection
 
- You may be wondering how things work if you use both the ```expand``` and ```fields``` option, and there is overlap. For example, your serialized person model may look like the following by default:
+When using an instance of `FlexFieldsModelSerializer`, you can examine the property `expanded_fields` to discover which fields, if any, have been dynamically expanded.
+
+## Use "~all" to Expand All Available Fields <a id="use-all"></a>
+
+You can set ```expand=~all``` to automatically expand all fields that are available for expansion. This will take effect only for the top-level serializer; if you need to also expand fields that are present on deeply nested models, then you will need to explicitly pass their values using dot notation.
+
+## Combining Sparse Fields and Field Expansion  <a id="combining-sparse-and-expanded"></a>
+
+ You may be wondering how things work if you use both the `expand` and `fields` option, and there is overlap. For example, your serialized person model may look like the following by default:
 
 ```json
 {
@@ -399,7 +458,7 @@ class PersonSerializer(FlexFieldsModelSerializer):
 }
 ```
 
-However, you make the following request ```HTTP GET /person/13322?include=id,name&expand=country```. You will get the following back:
+However, you make the following request `HTTP GET /person/13322?include=id,name&expand=country`. You will get the following back:
 
 ```json
 {
@@ -409,24 +468,6 @@ However, you make the following request ```HTTP GET /person/13322?include=id,nam
 ```
 
 The ```include``` field takes precedence over ```expand```. That is, if a field is not among the set that is explicitly alllowed, it cannot be expanded. If such a conflict occurs, you will not pay for the extra database queries - the expanded field will be silently abandoned.
-
-## Serializer Introspection
-
-When using an instance of `FlexFieldsModelSerializer`, you can examine the property `expanded_fields` to discover which fields, if any, have been dynamically expanded.
-
-## Lazy evaluation of serializer
-
-If you want to lazily evaluate the reference to your nested serializer class from a string inside expandable_fields, you need to use this syntax:
-
-```python
-expandable_fields = {
-    'record_set': ('<app_name>.RelatedSerializer', {'many': True})
-}
-```
-
-Substitute the name of your Django app where the serializer is found for `<app_name>`.
-
-This allows to reference a serializer that has not yet been defined.
 
 ## Query optimization (experimental)
 
