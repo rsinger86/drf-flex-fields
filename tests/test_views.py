@@ -81,7 +81,7 @@ class PetViewTests(APITestCase):
 
 
 @override_settings(DEBUG=True)
-@patch('tests.testapp.views.PetViewSet.filter_backends', [FlexFieldsFilterBackend])
+@patch("tests.testapp.views.PetViewSet.filter_backends", [FlexFieldsFilterBackend])
 class PetViewWithSelectFieldsFilterBackendTests(PetViewTests):
     def test_query_optimization(self):
         url = reverse("pet-list")
@@ -92,9 +92,9 @@ class PetViewWithSelectFieldsFilterBackendTests(PetViewTests):
 
         self.assertEqual(len(connection.queries), 1)
         self.assertEqual(
-            connection.queries[0]['sql'],
+            connection.queries[0]["sql"],
             (
-                'SELECT '
+                "SELECT "
                 '"testapp_pet"."id", '
                 '"testapp_pet"."name", '
                 '"testapp_pet"."owner_id", '
