@@ -78,7 +78,7 @@ GET /people/142/?expand=country.states
 ```
 # Table of Contents:
 
-- [Installation](#installation)
+- [Setup](#setup)
 - [Usage](#usage)
   * [Dynamic field expansion](#dynamic-field-expansion)
   * [Deferred fields](#deferred-fields)
@@ -98,18 +98,14 @@ GET /people/142/?expand=country.states
 - [Testing](#testing)
 - [License](#license)
 
-# Installation
+# Setup
 
+First install:
 ```
 pip install drf-flex-fields
 ```
 
-# Usage
-
-## Setup
-
-
-Have your serializers subclass `FlexFieldsModelSerializer`:
+Then have your serializers subclass `FlexFieldsModelSerializer`:
 ```python
 from rest_flex_fields import FlexFieldsModelSerializer
 
@@ -128,6 +124,8 @@ class CountrySerializer(FlexFieldsModelSerializer):
 ```
 
 Alternatively, you can add the `FlexFieldsSerializerMixin` mixin to a model serializer.
+
+# Usage
 
 ## Dynamic Field Expansion
 
@@ -246,7 +244,7 @@ Please be kind to your database, as this could incur many additional queries. Th
 
 ## Field Expansion on "List" Views <a id="list-views"></a>
 
-If you request many objects, expanding fields could lead to many database queries. Subclass `FlexFieldsModelViewSet` if you want to prevent expanding fields by default when calling a ViewSet's `list` method. List those fields that you would like to expand in a `permit_list_expands` property on the ViewSet:
+If you request many objects, expanding fields could lead to many additional database queries. Subclass `FlexFieldsModelViewSet` if you want to prevent expanding fields by default when calling a ViewSet's `list` method. Place those fields that you would like to expand in a `permit_list_expands` property on the ViewSet:
 
 ```python
 from drf_flex_fields import is_expanded
@@ -285,7 +283,7 @@ class CountrySerializer(FlexFieldsModelSerializer):
 ```
 
 A request to ```GET /countries?expand=states``` will return:
-```json
+```python
 {
     "id" : 12,
     "name" : "United States",
@@ -365,7 +363,7 @@ Substitute the name of your Django app where the serializer is found for `<app_n
 
 ## Increased re-usability of serializers <a id="increased-reuse"></a>
 
-The `omit` and `fields` options can be passed directly to serializers. Rather than defining a slimmer version of a regular serializer, you can re-use a serializer and declare which fields you want.
+The `omit` and `fields` options can be passed directly to serializers. Rather than defining a separate, slimmer version of a regular serializer, you can re-use the same serializer and declare which fields you want.
 
 ```python
 from rest_flex_fields import FlexFieldsModelSerializer
@@ -396,15 +394,15 @@ print(serializer.data)
 }
 ```
 
-# Serializer Options - Overview
+# Serializer Options
 
-The following options can be passed in the following ways:
+Dynamic field options can be passed in the following ways:
 - from the request's query parameters; separate multiple values with a commma
 - as keyword arguments directly to the serializer class when its constructed
 - from a dictionary placed as the second element in a tuple when defining `expandable_fields`
 
 Approach #1
-```python
+```
 GET /people?expand=friends.hobbies,employer&omit=age
 ```
 
@@ -433,6 +431,12 @@ class PersonSerializer(FlexFieldsModelSerializer):
       )
     }
 ```
+
+| Option        | Description   |
+| ------------- |:-------------:| 
+| expand        | Fields to expand; must be configured in the serializer's `expandable_fields` |
+| fields        | Fields that should be included; all others will be excluded      | 
+| omit          | Fields that should be excluded; all others will be included      | 
 
 # Advanced
 
