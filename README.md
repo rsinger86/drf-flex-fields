@@ -88,7 +88,7 @@ GET /people/142/?expand=country.states
   * [Dynamically setting fields (sparse fields)](#dynamically-setting-fields)
   * [Reference serializer as a string (lazy evaluation)](#lazy-ref)
   * [Increase re-usability of serializers](#increased-reuse)
-- [Serializer Options - Overview](#options)
+- [Serializer Options - Overview](#serializer-options)
 - [Advanced](#advanced)
   * [Serializer introspection](#serializer-introspection)
   * [Use "~all" to expand all available fields](#use-all)
