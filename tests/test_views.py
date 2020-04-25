@@ -79,6 +79,31 @@ class PetViewTests(APITestCase):
             },
         )
 
+    def test_create_and_return_expanded_field(self):
+        url = reverse("pet-list")
+        url = url + "?expand=owner"
+
+        response = self.client.post(
+            url,
+            {
+                "owner": self.person.id,
+                "species": "snake",
+                "toys": "playstation",
+                "name": "Freddy",
+            },
+            format="json",
+        )
+
+        self.assertEqual(
+            response.data,
+            {
+                "name": "Freddy",
+                "toys": "playstation",
+                "species": "snake",
+                "owner": {"name": "Fred", "hobbies": "sailing"},
+            },
+        )
+
 
 @override_settings(DEBUG=True)
 @patch("tests.testapp.views.PetViewSet.filter_backends", [FlexFieldsFilterBackend])

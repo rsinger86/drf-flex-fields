@@ -17,35 +17,47 @@ class FlexFieldsSerializerMixin(object):
     expandable_fields = {}
 
     def __init__(self, *args, **kwargs):
-        self.expanded_fields = []
-
-        passed = {
-            "expand": list(kwargs.pop("expand", [])),
-            "fields": list(kwargs.pop("fields", [])),
-            "omit": list(kwargs.pop("omit", [])),
-        }
+        expand = list(kwargs.pop("expand", []))
+        fields = list(kwargs.pop("fields", []))
+        omit = list(kwargs.pop("omit", []))
 
         super(FlexFieldsSerializerMixin, self).__init__(*args, **kwargs)
-        expand = self._get_expand_input(passed)
-        fields = self._get_fields_input(passed)
-        omit = self._get_omit_input(passed)
 
-        expand_fields, next_expand_fields = split_levels(expand)
-        sparse_fields, next_sparse_fields = split_levels(fields)
-        omit_fields, next_omit_fields = split_levels(omit)
+        self.expanded_fields = []
+        self._flex_fields_applied = False
 
-        self._clean_fields(omit_fields, sparse_fields, next_omit_fields)
+        self._flex_options = {
+            "expand": self._get_expand_input(expand),
+            "fields": self._get_fields_input(fields),
+            "omit": self._get_omit_input(omit),
+        }
+
+    def to_representation(self, *args, **kwargs):
+        if self._flex_fields_applied is False:
+            self.apply_flex_fields()
+        return super().to_representation(*args, **kwargs)
+
+    def apply_flex_fields(self):
+        expand_fields, next_expand_fields = split_levels(self._flex_options["expand"])
+        sparse_fields, next_sparse_fields = split_levels(self._flex_options["fields"])
+        omit_fields, next_omit_fields = split_levels(self._flex_options["omit"])
+
+        self._clean_fields(
+            omit_fields, sparse_fields, next_omit_fields,
+        )
 
         expanded_field_names = self._get_expanded_names(
-            expand_fields, omit_fields, sparse_fields, next_omit_fields
+            expand_fields, omit_fields, sparse_fields, next_omit_fields,
         )
 
         for name in expanded_field_names:
             self.expanded_fields.append(name)
 
             self.fields[name] = self._make_expanded_field_serializer(
-                name, next_expand_fields, next_sparse_fields, next_omit_fields
+                name, next_expand_fields, next_sparse_fields, next_omit_fields,
             )
+
+        self._flex_fields_applied = True
 
     def _make_expanded_field_serializer(
         self, name, nested_expand, nested_fields, nested_omit
@@ -106,11 +118,11 @@ class FlexFieldsSerializerMixin(object):
             return
 
         for field_name in self.fields:
-            is_present = self._should_field_exist(
+            should_exist = self._should_field_exist(
                 field_name, omit_fields, sparse_fields, next_level_omits
             )
 
-            if not is_present:
+            if not should_exist:
                 to_remove.append(field_name)
 
         for remove_field in to_remove:
@@ -175,7 +187,6 @@ class FlexFieldsSerializerMixin(object):
         Can access current request object if all are true
         - The serializer is the root.
         - A request context was passed in.
-        - The request method is GET.
         """
         if self.parent:
             return False
@@ -183,21 +194,17 @@ class FlexFieldsSerializerMixin(object):
         if not hasattr(self, "context") or not self.context.get("request", None):
             return False
 
-        return self.context["request"].method == "GET"
+        return True
 
-    def _get_omit_input(self, passed_settings):
-        value = passed_settings.get("omit")
-
-        if len(value) > 0:
-            return value
+    def _get_omit_input(self, passed):
+        if len(passed) > 0:
+            return passed
 
         return self._parse_request_list_value("omit")
 
-    def _get_fields_input(self, passed_settings):
-        value = passed_settings.get("fields")
-
-        if len(value) > 0:
-            return value
+    def _get_fields_input(self, passed):
+        if len(passed) > 0:
+            return passed
 
         return self._parse_request_list_value("fields")
 
@@ -213,17 +220,15 @@ class FlexFieldsSerializerMixin(object):
             return values[0].split(",")
         return values or []
 
-    def _get_expand_input(self, passed_settings):
+    def _get_expand_input(self, passed):
         """
             If expand value is explicitliy passed, just return it.
             If parsing from request, ensure that the value complies with
             the "permitted_expands" list passed into the context from the
             FlexFieldsMixin.
         """
-        value = passed_settings.get("expand")
-
-        if len(value) > 0:
-            return value
+        if len(passed) > 0:
+            return passed
 
         if not self._can_access_request:
             return []

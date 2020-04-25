@@ -75,18 +75,6 @@ class TestFlexFieldModelSerializer(TestCase):
         serializer = FlexFieldsModelSerializer(context={})
         self.assertFalse(serializer._can_access_request)
 
-    def test_cannot_access_request_if_request_method_is_not_get(self):
-        serializer = FlexFieldsModelSerializer(
-            context={"request": MockRequest(method="PUT")}
-        )
-        self.assertFalse(serializer._can_access_request)
-
-    def test_can_access_request_if_request_method_is_get(self):
-        serializer = FlexFieldsModelSerializer(
-            context={"request": MockRequest(method="GET")}
-        )
-        self.assertTrue(serializer._can_access_request)
-
     def test_get_omit_input_from_explicit_settings(self):
         serializer = FlexFieldsModelSerializer(context={})
 
@@ -94,7 +82,7 @@ class TestFlexFieldModelSerializer(TestCase):
             method="GET", query_params={"omit": "cat,dog"}
         )
 
-        result = serializer._get_omit_input({"omit": ["fish"]})
+        result = serializer._get_omit_input(["fish"])
         self.assertEqual(result, ["fish"])
 
     def test_get_omit_input_from_query_param(self):
@@ -104,7 +92,7 @@ class TestFlexFieldModelSerializer(TestCase):
             method="GET", query_params=MultiValueDict({"omit": ["cat,dog"]})
         )
 
-        result = serializer._get_omit_input({"omit": []})
+        result = serializer._get_omit_input([])
         self.assertEqual(result, ["cat", "dog"])
 
     def test_get_fields_input_from_explicit_settings(self):
@@ -114,7 +102,7 @@ class TestFlexFieldModelSerializer(TestCase):
             method="GET", query_params={"fields": "cat,dog"}
         )
 
-        result = serializer._get_fields_input({"fields": ["fish"]})
+        result = serializer._get_fields_input(["fish"])
         self.assertEqual(result, ["fish"])
 
     def test_get_fields_input_from_query_param(self):
@@ -124,7 +112,7 @@ class TestFlexFieldModelSerializer(TestCase):
             method="GET", query_params=MultiValueDict({"fields": ["cat,dog"]})
         )
 
-        result = serializer._get_fields_input({"fields": []})
+        result = serializer._get_fields_input([])
         self.assertEqual(result, ["cat", "dog"])
 
     def test_get_expand_input_from_explicit_setting(self):
@@ -134,7 +122,7 @@ class TestFlexFieldModelSerializer(TestCase):
             method="GET", query_params={"fields": "cat,dog"}
         )
 
-        result = serializer._get_expand_input({"expand": ["cat"]})
+        result = serializer._get_expand_input(["cat"])
         self.assertEqual(result, ["cat"])
 
     def test_get_expand_input_from_query_param(self):
@@ -144,7 +132,7 @@ class TestFlexFieldModelSerializer(TestCase):
             method="GET", query_params=MultiValueDict({"expand": ["cat,dog"]})
         )
 
-        result = serializer._get_expand_input({"expand": []})
+        result = serializer._get_expand_input([])
         self.assertEqual(result, ["cat", "dog"])
 
     def test_get_expand_input_from_query_param_limit_to_list_permitted(self):
@@ -155,7 +143,7 @@ class TestFlexFieldModelSerializer(TestCase):
         )
 
         serializer.context["permitted_expands"] = ["cat"]
-        result = serializer._get_expand_input({"expand": []})
+        result = serializer._get_expand_input([])
         self.assertEqual(result, ["cat"])
 
     def test_parse_request_list_value(self):
