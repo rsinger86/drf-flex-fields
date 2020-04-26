@@ -33,6 +33,8 @@ class FlexFieldsFilterBackend(BaseFilterBackend):
             context=view.get_serializer_context()
         )
 
+        serializer.apply_flex_fields()
+
         model_fields = [
             self._get_field(field.source, queryset.model)
             for field in serializer.fields.values()
