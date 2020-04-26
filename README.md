@@ -494,6 +494,11 @@ It will automatically call `select_related` and `prefetch_related` on the curren
 
 # Changelog <a id="changelog"></a>
 
+## 0.8.0 (April 2020)
+* Adds support for `expand`, `omit` and `fields` query parameters for non-GET requests.
+  - The common use case is creating/updating a model instance and returning a serialized response with expanded fields
+  - Thanks @kotepillar for raising the issue (#25) and @Crocmagnon for the idea of delaying field modification to `to_representation()`.
+
 ## 0.7.5 (February 2020)
 * Simplifies declaration of `expandable_fields`
   - If using a tuple, the second element - to define the serializer settings - is now optional.
