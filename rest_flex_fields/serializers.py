@@ -1,9 +1,9 @@
 import copy
 import importlib
-
-from rest_framework import serializers
+from typing import List
 
 from rest_flex_fields import split_levels
+from rest_framework import serializers
 
 
 class FlexFieldsSerializerMixin(object):
@@ -27,9 +27,15 @@ class FlexFieldsSerializerMixin(object):
         self._flex_fields_applied = False
 
         self._flex_options = {
-            "expand": self._get_expand_input(expand),
-            "fields": self._get_fields_input(fields),
-            "omit": self._get_omit_input(omit),
+            "expand": (
+                expand
+                if len(expand) > 0
+                else self._get_permitted_expands_from_query_param()
+            ),
+            "fields": (
+                fields if len(fields) > 0 else self._get_query_param_value("fields")
+            ),
+            "omit": omit if len(omit) > 0 else self._get_query_param_value("omit"),
         }
 
     def to_representation(self, *args, **kwargs):
@@ -42,11 +48,14 @@ class FlexFieldsSerializerMixin(object):
         sparse_fields, next_sparse_fields = split_levels(self._flex_options["fields"])
         omit_fields, next_omit_fields = split_levels(self._flex_options["omit"])
 
-        self._clean_fields(
+        to_remove = self._get_fields_names_to_remove(
             omit_fields, sparse_fields, next_omit_fields,
         )
 
-        expanded_field_names = self._get_expanded_names(
+        for field_name in to_remove:
+            self.fields.pop(field_name)
+
+        expanded_field_names = self._get_expanded_field_names(
             expand_fields, omit_fields, sparse_fields, next_omit_fields,
         )
 
@@ -91,7 +100,7 @@ class FlexFieldsSerializerMixin(object):
 
         return serializer_class(**settings)
 
-    def _import_serializer_class(self, location):
+    def _import_serializer_class(self, location: str):
         """
         Resolves a dot-notation string to serializer class.
         <app>.<SerializerName> will automatically be interpreted as:
@@ -106,7 +115,12 @@ class FlexFieldsSerializerMixin(object):
         module = importlib.import_module(".".join(pieces))
         return getattr(module, class_name)
 
-    def _clean_fields(self, omit_fields, sparse_fields, next_level_omits):
+    def _get_fields_names_to_remove(
+        self,
+        omit_fields: List[str],
+        sparse_fields: List[str],
+        next_level_omits: List[str],
+    ) -> List[str]:
         """
             Remove fields that are found in omit list, and if sparse names
             are passed, remove any fields not found in that list.
@@ -115,7 +129,7 @@ class FlexFieldsSerializerMixin(object):
         to_remove = []
 
         if not sparse and len(omit_fields) == 0:
-            return
+            return to_remove
 
         for field_name in self.fields:
             should_exist = self._should_field_exist(
@@ -125,12 +139,15 @@ class FlexFieldsSerializerMixin(object):
             if not should_exist:
                 to_remove.append(field_name)
 
-        for remove_field in to_remove:
-            self.fields.pop(remove_field)
+        return to_remove
 
     def _should_field_exist(
-        self, field_name, omit_fields, sparse_fields, next_level_omits
-    ):
+        self,
+        field_name: str,
+        omit_fields: List[str],
+        sparse_fields: List[str],
+        next_level_omits: List[str],
+    ) -> bool:
         """
             Next level omits take form of:
             {
@@ -147,9 +164,13 @@ class FlexFieldsSerializerMixin(object):
 
         return True
 
-    def _get_expanded_names(
-        self, expand_fields, omit_fields, sparse_fields, next_level_omits
-    ):
+    def _get_expanded_field_names(
+        self,
+        expand_fields: List[str],
+        omit_fields: List[str],
+        sparse_fields: List[str],
+        next_level_omits: List[str],
+    ) -> List[str]:
         if len(expand_fields) == 0:
             return []
 
@@ -181,59 +202,30 @@ class FlexFieldsSerializerMixin(object):
 
         return self.expandable_fields
 
-    @property
-    def _can_access_request(self):
-        """
-        Can access current request object if all are true
-        - The serializer is the root.
-        - A request context was passed in.
-        """
+    def _get_query_param_value(self, field: str) -> List[str]:
         if self.parent:
-            return False
+            return []
 
-        if not hasattr(self, "context") or not self.context.get("request", None):
-            return False
-
-        return True
-
-    def _get_omit_input(self, passed):
-        if len(passed) > 0:
-            return passed
-
-        return self._parse_request_list_value("omit")
-
-    def _get_fields_input(self, passed):
-        if len(passed) > 0:
-            return passed
-
-        return self._parse_request_list_value("fields")
-
-    def _parse_request_list_value(self, field):
-        if not self._can_access_request:
+        if not hasattr(self, "context") or not self.context.get("request"):
             return []
 
         values = self.context["request"].query_params.getlist(field)
+
         if not values:
             values = self.context["request"].query_params.getlist("{}[]".format(field))
 
         if values and len(values) == 1:
             return values[0].split(",")
+
         return values or []
 
-    def _get_expand_input(self, passed):
+    def _get_permitted_expands_from_query_param(self) -> List[str]:
         """
-            If expand value is explicitliy passed, just return it.
-            If parsing from request, ensure that the value complies with
-            the "permitted_expands" list passed into the context from the
-            FlexFieldsMixin.
+            If a list of permitted_expands has been passed to context,
+            make sure that the "expand" fields from the query params
+            comply.
         """
-        if len(passed) > 0:
-            return passed
-
-        if not self._can_access_request:
-            return []
-
-        expand = self._parse_request_list_value("expand")
+        expand = self._get_query_param_value("expand")
 
         if "permitted_expands" in self.context:
             permitted_expands = self.context["permitted_expands"]
