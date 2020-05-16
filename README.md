@@ -24,7 +24,7 @@ from rest_flex_fields import FlexFieldsModelSerializer
 
 class StateSerializer(FlexFieldsModelSerializer):
     class Meta:
-        model = Country
+        model = State
         fields = ('id', 'name')
 
 class CountrySerializer(FlexFieldsModelSerializer):
