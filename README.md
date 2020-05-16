@@ -494,6 +494,10 @@ It will automatically call `select_related` and `prefetch_related` on the curren
 
 # Changelog <a id="changelog"></a>
 
+## 0.8.1 (May 2020)
+* Fixes #44, related to the experimental filter backend. Thanks @jsatt!
+
+
 ## 0.8.0 (April 2020)
 * Adds support for `expand`, `omit` and `fields` query parameters for non-GET requests.
   - The common use case is creating/updating a model instance and returning a serialized response with expanded fields
