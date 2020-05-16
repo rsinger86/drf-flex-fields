@@ -8,7 +8,7 @@ from rest_framework.filters import BaseFilterBackend
 from rest_framework.request import Request
 from rest_framework.viewsets import GenericViewSet
 
-from rest_flex_fields import FlexFieldsModelSerializer
+from rest_flex_fields.serializers import FlexFieldsSerializerMixin
 
 
 class FlexFieldsFilterBackend(BaseFilterBackend):
@@ -16,7 +16,7 @@ class FlexFieldsFilterBackend(BaseFilterBackend):
         self, request: Request, queryset: QuerySet, view: GenericViewSet
     ):
         if (
-            not issubclass(view.get_serializer_class(), FlexFieldsModelSerializer)
+            not issubclass(view.get_serializer_class(), FlexFieldsSerializerMixin)
             or request.method != "GET"
         ):
             return queryset
@@ -29,7 +29,7 @@ class FlexFieldsFilterBackend(BaseFilterBackend):
         )
         required_query_fields = list(getattr(view, "required_query_fields", []))
 
-        serializer = view.get_serializer(  # type: FlexFieldsModelSerializer
+        serializer = view.get_serializer(  # type: FlexFieldsSerializerMixin
             context=view.get_serializer_context()
         )
 
@@ -96,7 +96,7 @@ class FlexFieldsFilterBackend(BaseFilterBackend):
             coreschema is not None
         ), "coreschema must be installed to use `get_schema_fields()`"
 
-        if not issubclass(view.get_serializer_class(), FlexFieldsModelSerializer):
+        if not issubclass(view.get_serializer_class(), FlexFieldsSerializerMixin):
             return []
 
         return [
