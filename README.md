@@ -90,6 +90,7 @@ GET /people/142/?expand=country.states
   * [Increase re-usability of serializers](#increased-reuse)
 - [Serializer Options - Overview](#serializer-options)
 - [Advanced](#advanced)
+  * [Customization](#customization)
   * [Serializer introspection](#serializer-introspection)
   * [Use "~all" to expand all available fields](#use-all)
   * [Combining sparse and expanded fields](#combining-sparse-and-expanded)
@@ -440,13 +441,28 @@ class PersonSerializer(FlexFieldsModelSerializer):
 
 # Advanced
 
+## Customization
+
+Parameter names and wildcard values can be configured within a Django setting, named `REST_FLEX_FIELDS`.
+
+| Option                  | Description                                                    | Default   |
+| ----------------------- |:--------------------------------------------------------------:| --------- |
+| EXPAND_PARAM            | The name of the parameter with the fields to be expanded |   `"expand"`  |
+| FIELDS_PARAM            | The name of the parameter with the fields to be included (others will be omitted) |   `"fields"`   | 
+| OMIT_PARAM              | The name of the parameter with the fields to be omitted  |   `"omit"`  |
+| WILDCARD_EXPAND_VALUES  | List of values that trigger the expansion of all `expandable_fields` when passed to expand parameter. To disable, set to `None`. | `["*", "~all"]` |
+
+For example, if you want your API to work a bit more like [JSON API](https://jsonapi.org/format/#fetching-includes), you could do:
+```python
+REST_FLEX_FIELDS = {"EXPAND_PARAM": "include"}
+```
 ## Serializer Introspection
 
 When using an instance of `FlexFieldsModelSerializer`, you can examine the property `expanded_fields` to discover which fields, if any, have been dynamically expanded.
 
 ## Use "~all" to Expand All Available Fields <a id="use-all"></a>
 
-You can set ```expand=~all``` to automatically expand all fields that are available for expansion. This will take effect only for the top-level serializer; if you need to also expand fields that are present on deeply nested models, then you will need to explicitly pass their values using dot notation.
+You can set ```expand=~all``` ([or to another value of your choosing](#customization)) to automatically expand all fields that are available for expansion. This will take effect only for the top-level serializer; if you need to also expand fields that are present on deeply nested models, then you will need to explicitly pass their values using dot notation.
 
 ## Combining Sparse Fields and Field Expansion  <a id="combining-sparse-and-expanded"></a>
 
@@ -493,6 +509,9 @@ It will automatically call `select_related` and `prefetch_related` on the curren
 **WARNING:** The optimization currently works only for one nesting level.
 
 # Changelog <a id="changelog"></a>
+
+## 0.8.5 (May 2020)
+* Adds options to customize parameter names and wildcard values. Closes #10.
 
 ## 0.8.1 (May 2020)
 * Fixes #44, related to the experimental filter backend. Thanks @jsatt!

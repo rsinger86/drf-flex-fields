@@ -1,7 +1,7 @@
-import unittest
+from unittest.mock import patch
 
+from django.test import TestCase
 from django.utils.datastructures import MultiValueDict
-
 from tests.testapp.models import Company, Person, Pet
 from tests.testapp.serializers import PetSerializer
 
@@ -12,7 +12,7 @@ class MockRequest(object):
         self.method = method
 
 
-class TestSerialize(unittest.TestCase):
+class TestSerialize(TestCase):
     def test_basic_field_omit(self):
         pet = Pet(
             name="Garfield",
@@ -170,3 +170,50 @@ class TestSerialize(unittest.TestCase):
                 },
             },
         )
+
+    @patch("rest_flex_fields.serializers.EXPAND_PARAM", "include")
+    def test_expand_with_custom_param_name(self):
+        pet = Pet(
+            name="Garfield",
+            toys="paper ball, string",
+            species="cat",
+            owner=Person(name="Fred", hobbies="sailing"),
+        )
+
+        expected_serializer_data = {
+            "name": "Garfield",
+            "toys": "paper ball, string",
+            "species": "cat",
+            "owner": {"name": "Fred", "hobbies": "sailing"},
+        }
+
+        serializer = PetSerializer(pet, include=["owner"])
+        self.assertEqual(serializer.data, expected_serializer_data)
+
+    @patch("rest_flex_fields.serializers.OMIT_PARAM", "exclude")
+    def test_omit_with_custom_param_name(self):
+        pet = Pet(
+            name="Garfield",
+            toys="paper ball, string",
+            species="cat",
+            owner=Person(name="Fred"),
+        )
+
+        expected_serializer_data = {"name": "Garfield", "toys": "paper ball, string"}
+
+        serializer = PetSerializer(pet, exclude=["species", "owner"])
+        self.assertEqual(serializer.data, expected_serializer_data)
+
+    @patch("rest_flex_fields.serializers.FIELDS_PARAM", "only")
+    def test_fields_include_with_custom_param_name(self):
+        pet = Pet(
+            name="Garfield",
+            toys="paper ball, string",
+            species="cat",
+            owner=Person(name="Fred"),
+        )
+
+        expected_serializer_data = {"name": "Garfield", "toys": "paper ball, string"}
+
+        serializer = PetSerializer(pet, only=["name", "toys"])
+        self.assertEqual(serializer.data, expected_serializer_data)

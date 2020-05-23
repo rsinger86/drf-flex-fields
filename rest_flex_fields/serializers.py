@@ -2,8 +2,25 @@ import copy
 import importlib
 from typing import List
 
+from django.conf import settings
 from rest_flex_fields import split_levels
 from rest_framework import serializers
+
+FLEX_FIELDS_OPTIONS = getattr(settings, "REST_FLEX_FIELDS", {})
+EXPAND_PARAM = FLEX_FIELDS_OPTIONS.get("EXPAND_PARAM", "expand")
+FIELDS_PARAM = FLEX_FIELDS_OPTIONS.get("FIELDS_PARAM", "fields")
+OMIT_PARAM = FLEX_FIELDS_OPTIONS.get("OMIT_PARAM", "omit")
+
+WILDCARD_EXPAND_VALUES = FLEX_FIELDS_OPTIONS.get(
+    "WILDCARD_EXPAND_VALUES", ["~all", "*"]
+)
+
+assert isinstance(EXPAND_PARAM, str), "'EXPAND_PARAM' should be a string"
+assert isinstance(FIELDS_PARAM, str), "'FIELDS_PARAM' should be a string"
+assert isinstance(OMIT_PARAM, str), "'OMIT_PARAM' should be a string"
+
+if type(WILDCARD_EXPAND_VALUES) not in (list, None):
+    raise ValueError("'WILDCARD_EXPAND_VALUES' should be a list of strings or None")
 
 
 class FlexFieldsSerializerMixin(object):
@@ -11,15 +28,15 @@ class FlexFieldsSerializerMixin(object):
         A ModelSerializer that takes additional arguments for
         "fields", "omit" and "expand" in order to
         control which fields are displayed, and whether to replace simple
-        values with complex, nested serializations.clean
+        values with complex, nested serializations
     """
 
     expandable_fields = {}
 
     def __init__(self, *args, **kwargs):
-        expand = list(kwargs.pop("expand", []))
-        fields = list(kwargs.pop("fields", []))
-        omit = list(kwargs.pop("omit", []))
+        expand = list(kwargs.pop(EXPAND_PARAM, []))
+        fields = list(kwargs.pop(FIELDS_PARAM, []))
+        omit = list(kwargs.pop(OMIT_PARAM, []))
 
         super(FlexFieldsSerializerMixin, self).__init__(*args, **kwargs)
 
@@ -30,12 +47,12 @@ class FlexFieldsSerializerMixin(object):
             "expand": (
                 expand
                 if len(expand) > 0
-                else self._get_permitted_expands_from_query_param()
+                else self._get_permitted_expands_from_query_param(EXPAND_PARAM)
             ),
             "fields": (
-                fields if len(fields) > 0 else self._get_query_param_value("fields")
+                fields if len(fields) > 0 else self._get_query_param_value(FIELDS_PARAM)
             ),
-            "omit": omit if len(omit) > 0 else self._get_query_param_value("omit"),
+            "omit": omit if len(omit) > 0 else self._get_query_param_value(OMIT_PARAM),
         }
 
     def to_representation(self, *args, **kwargs):
@@ -174,7 +191,7 @@ class FlexFieldsSerializerMixin(object):
         if len(expand_fields) == 0:
             return []
 
-        if "~all" in expand_fields or "*" in expand_fields:
+        if self._contains_wildcard_expand_value(expand_fields):
             expand_fields = self._expandable_fields.keys()
 
         accum = []
@@ -219,23 +236,29 @@ class FlexFieldsSerializerMixin(object):
 
         return values or []
 
-    def _get_permitted_expands_from_query_param(self) -> List[str]:
+    def _get_permitted_expands_from_query_param(self, expand_param: str) -> List[str]:
         """
             If a list of permitted_expands has been passed to context,
             make sure that the "expand" fields from the query params
             comply.
         """
-        expand = self._get_query_param_value("expand")
+        expand = self._get_query_param_value(expand_param)
 
         if "permitted_expands" in self.context:
             permitted_expands = self.context["permitted_expands"]
 
-            if "~all" in expand or "*" in expand:
+            if self._contains_wildcard_expand_value(expand):
                 return permitted_expands
             else:
                 return list(set(expand) & set(permitted_expands))
 
         return expand
+
+    def _contains_wildcard_expand_value(self, expand_values: List[str]) -> bool:
+        if WILDCARD_EXPAND_VALUES is None:
+            return False
+        intersecting_values = list(set(expand_values) & set(WILDCARD_EXPAND_VALUES))
+        return len(intersecting_values) > 0
 
 
 class FlexFieldsModelSerializer(FlexFieldsSerializerMixin, serializers.ModelSerializer):
