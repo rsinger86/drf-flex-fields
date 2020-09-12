@@ -496,15 +496,15 @@ The ```include``` field takes precedence over ```expand```. That is, if a field 
 Checks whether a field has been expanded via the request's query parameters.
 
 **Parameters**
-- **request**: 
-- **field**: 
+- **request**: The request object
+- **field**: The name of the field to check
 
 ### rest_flex_fields.is_included(request, field: str)
 Checks whether a field has NOT been excluded via either the `omit` parameter or the `fields` parameter.
 
 **Parameters**
-- **request**: 
-- **field**: 
+- **request**: The request object
+- **field**: The name of the field to check
 
 
 ## Query optimization (experimental)
