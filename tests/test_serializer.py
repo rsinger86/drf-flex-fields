@@ -2,6 +2,9 @@ from unittest.mock import patch
 
 from django.test import TestCase
 from django.utils.datastructures import MultiValueDict
+from rest_framework import serializers
+
+from rest_flex_fields.serializers import FlexFieldsModelSerializer
 from tests.testapp.models import Company, Person, Pet
 from tests.testapp.serializers import PetSerializer
 
@@ -217,3 +220,32 @@ class TestSerialize(TestCase):
 
         serializer = PetSerializer(pet, only=["name", "toys"])
         self.assertEqual(serializer.data, expected_serializer_data)
+
+    def test_all_special_value_in_serialize(self):
+        pet = Pet(
+            name="Garfield",
+            toys="paper ball, string",
+            species="cat",
+            owner=Person(name="Fred", employer=Company(name="McDonalds")),
+        )
+
+        class PetSerializer(FlexFieldsModelSerializer):
+            owner = serializers.PrimaryKeyRelatedField(
+                queryset=Person.objects.all(), allow_null=True
+            )
+
+            class Meta:
+                model = Pet
+                fields = "__all__"
+
+        serializer = PetSerializer(
+            fields=("name", "toys"),
+            data={
+                "name": "Garfield",
+                "toys": "paper ball",
+                "species": "cat",
+                "owner": None,
+            },
+        )
+
+        serializer.is_valid(raise_exception=True)

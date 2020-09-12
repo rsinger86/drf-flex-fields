@@ -94,6 +94,7 @@ GET /people/142/?expand=country.states
   * [Serializer introspection](#serializer-introspection)
   * [Use "~all" to expand all available fields](#use-all)
   * [Combining sparse and expanded fields](#combining-sparse-and-expanded)
+  * [Utility functions](#utils)
   * [Query optimization (experimental)](#query-optimization-experimental)
 - [Change Log](#changelog)
 - [Testing](#testing)
@@ -489,6 +490,23 @@ However, you make the following request `HTTP GET /person/13322?include=id,name&
 
 The ```include``` field takes precedence over ```expand```. That is, if a field is not among the set that is explicitly alllowed, it cannot be expanded. If such a conflict occurs, you will not pay for the extra database queries - the expanded field will be silently abandoned.
 
+## Utility Functions <a id="utils"></a>
+
+### rest_flex_fields.is_expanded(request, field: str)
+Checks whether a field has been expanded via the request's query parameters.
+
+**Parameters**
+- **request**: 
+- **field**: 
+
+### rest_flex_fields.is_included(request, field: str)
+Checks whether a field has NOT been excluded via either the `omit` parameter or the `fields` parameter.
+
+**Parameters**
+- **request**: 
+- **field**: 
+
+
 ## Query optimization (experimental)
 
 An experimental filter backend is available to help you automatically reduce the number of SQL queries and their transfer size. *This feature has not been tested thorougly and any help testing and reporting bugs is greatly appreciated.* You can add FlexFieldFilterBackend to `DEFAULT_FILTER_BACKENDS` in the settings:
@@ -509,6 +527,9 @@ It will automatically call `select_related` and `prefetch_related` on the curren
 **WARNING:** The optimization currently works only for one nesting level.
 
 # Changelog <a id="changelog"></a>
+
+## 0.8.6 (September 2020)
+* Adds `is_included` utility function.
 
 ## 0.8.5 (May 2020)
 * Adds options to customize parameter names and wildcard values. Closes #10.
