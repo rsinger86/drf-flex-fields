@@ -110,15 +110,9 @@ class FlexFieldsSerializerMixin(object):
     def _import_serializer_class(self, location: str):
         """
         Resolves a dot-notation string to serializer class.
-        <app>.<SerializerName> will automatically be interpreted as:
-        <app>.serializers.<SerializerName>
         """
         pieces = location.split(".")
         class_name = pieces.pop()
-
-        if pieces[len(pieces) - 1] != "serializers":
-            pieces.append("serializers")
-
         module = importlib.import_module(".".join(pieces))
         return getattr(module, class_name)
 
