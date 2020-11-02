@@ -249,7 +249,7 @@ Please be kind to your database, as this could incur many additional queries. Th
 If you request many objects, expanding fields could lead to many additional database queries. Subclass `FlexFieldsModelViewSet` if you want to prevent expanding fields by default when calling a ViewSet's `list` method. Place those fields that you would like to expand in a `permit_list_expands` property on the ViewSet:
 
 ```python
-from drf_flex_fields import is_expanded
+from rest_flex_fields import is_expanded
 
 class PersonViewSet(FlexFieldsModelViewSet):
     permit_list_expands = ['employer']
