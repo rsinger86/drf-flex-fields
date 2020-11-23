@@ -1,6 +1,7 @@
 from functools import lru_cache
 from typing import Optional
 
+from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 from django.db.models import QuerySet
 from rest_framework.compat import coreapi, coreschema
@@ -85,7 +86,7 @@ class FlexFieldsFilterBackend(BaseFilterBackend):
         try:
             # noinspection PyProtectedMember
             return model._meta.get_field(field_name)
-        except models.FieldDoesNotExist:
+        except FieldDoesNotExist:
             return None
 
     def get_schema_fields(self, view):
