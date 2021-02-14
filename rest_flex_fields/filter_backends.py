@@ -132,3 +132,46 @@ class FlexFieldsFilterBackend(BaseFilterBackend):
                 example="nested1,nested2",
             ),
         ]
+
+    def get_schema_operation_parameters(self, view):
+
+        if not issubclass(view.get_serializer_class(), FlexFieldsSerializerMixin):
+            return []
+
+        parameters = [
+            {
+                "name": "fields",
+                "required": False,
+                "in": "query",
+                "description": "Specify required field by comma",
+                "schema": {
+                    "title": "Selected fields",
+                    "type": "string",
+                },
+                "example": "field1,field2,nested.field",
+            },
+            {
+                "name": "omit",
+                "required": False,
+                "in": "query",
+                "description": "Specify required field by comma",
+                "schema": {
+                    "title": "Omitted fields",
+                    "type": "string",
+                },
+                "example": "field1,field2,nested.field",
+            },
+            {
+                "name": "expand",
+                "required": False,
+                "in": "query",
+                "description": "Specify required field by comma",
+                "schema": {
+                    "title": "Expanded fields",
+                    "type": "string",
+                },
+                "example": "nested1,nested2",
+            },
+        ]
+
+        return parameters
