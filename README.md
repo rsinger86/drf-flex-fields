@@ -528,6 +528,9 @@ It will automatically call `select_related` and `prefetch_related` on the curren
 
 # Changelog <a id="changelog"></a>
 
+## 0.8.9 (February 2021)
+* Adds OpenAPI support to experimental filter backend. Thanks @LukasBerka!
+
 ## 0.8.8 (September 2020)
 * Django 3.1.1 fix. Thansks @NiyazNz!
 * Docs typo fix. Thanks @zakjholt!
