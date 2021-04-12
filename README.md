@@ -460,7 +460,7 @@ class PersonSerializer(FlexFieldsModelSerializer):
     expandable_fields = {
       'friends': (
         'serializer.FriendSerializer',
-        {'many': True, "expand": ["hobbies"], "omit": "friends.age"}
+        {'many': True, "expand": ["hobbies"], "omit": ["age"]}
       )
     }
 ```
