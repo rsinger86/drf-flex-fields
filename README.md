@@ -346,7 +346,7 @@ To whittle down the fields via URL parameters, simply add `?fields=id,name,count
   "name" : "John Doe",
   "country" : {
     "name" : "United States",
-    "population: 330000000
+    "population": 330000000
   }
 }
 ```
