@@ -1,6 +1,6 @@
 import copy
 import importlib
-from typing import List
+from typing import List, Optional, Tuple
 
 from rest_framework import serializers
 
@@ -56,21 +56,21 @@ class FlexFieldsSerializerMixin(object):
         omit_fields, next_omit_fields = split_levels(self._flex_options["omit"])
 
         to_remove = self._get_fields_names_to_remove(
-            omit_fields, sparse_fields, next_omit_fields,
+            omit_fields, sparse_fields, next_omit_fields
         )
 
         for field_name in to_remove:
             self.fields.pop(field_name)
 
         expanded_field_names = self._get_expanded_field_names(
-            expand_fields, omit_fields, sparse_fields, next_omit_fields,
+            expand_fields, omit_fields, sparse_fields, next_omit_fields
         )
 
         for name in expanded_field_names:
             self.expanded_fields.append(name)
 
             self.fields[name] = self._make_expanded_field_serializer(
-                name, next_expand_fields, next_sparse_fields, next_omit_fields,
+                name, next_expand_fields, next_sparse_fields, next_omit_fields
             )
 
         self._flex_fields_applied = True
@@ -103,24 +103,44 @@ class FlexFieldsSerializerMixin(object):
             del settings["source"]
 
         if type(serializer_class) == str:
-            serializer_class = self._import_serializer_class(serializer_class)
+            serializer_class = self._get_serializer_class_from_lazy_string(
+                serializer_class
+            )
 
         return serializer_class(**settings)
 
-    def _import_serializer_class(self, location: str):
-        """
-        Resolves a dot-notation string to serializer class.
-        <app>.<SerializerName> will automatically be interpreted as:
-        <app>.serializers.<SerializerName>
-        """
-        pieces = location.split(".")
-        class_name = pieces.pop()
+    def _get_serializer_class_from_lazy_string(self, full_lazy_path: str):
+        path_parts = full_lazy_path.split(".")
+        class_name = path_parts.pop()
+        path = ".".join(path_parts)
+        serializer_class, error = self._import_serializer_class(path, class_name)
 
-        if pieces[len(pieces) - 1] != "serializers":
-            pieces.append("serializers")
+        if error and not path.endswith(".serializers"):
+            serializer_class, error = self._import_serializer_class(
+                path + ".serializers", class_name
+            )
 
-        module = importlib.import_module(".".join(pieces))
-        return getattr(module, class_name)
+        if serializer_class:
+            return serializer_class
+
+        raise Exception(error)
+
+    def _import_serializer_class(
+        self, path: str, class_name: str
+    ) -> Tuple[Optional[str], Optional[str]]:
+        try:
+            module = importlib.import_module(path)
+        except ImportError:
+            return (
+                None,
+                "No module found at path: %s when trying to import %s"
+                % (path, class_name),
+            )
+
+        try:
+            return getattr(module, class_name), None
+        except AttributeError:
+            return None, "No class %s class found in module %s" % (path, class_name)
 
     def _get_fields_names_to_remove(
         self,
