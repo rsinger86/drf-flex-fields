@@ -82,25 +82,44 @@ GET /people/142/?expand=country.states
 
 # Table of Contents:
 
+- [Django REST - FlexFields](#django-rest---flexfields)
+- [Overview](#overview)
+- [Quick Start](#quick-start)
+- [Table of Contents:](#table-of-contents)
 - [Setup](#setup)
 - [Usage](#usage)
-  - [Dynamic field expansion](#dynamic-field-expansion)
-  - [Deferred fields](#deferred-fields)
-  - [Deep, nested Expansion](#deep-nested-expansion)
-  - [Field expansion on "list" views](#list-views)
-  - [Expanding a "many" relationship](#expanding-many)
-  - [Dynamically setting fields (sparse fields)](#dynamically-setting-fields)
-  - [Reference serializer as a string (lazy evaluation)](#lazy-ref)
-  - [Increase re-usability of serializers](#increased-reuse)
-- [Serializer Options - Overview](#serializer-options)
+  - [Dynamic Field Expansion](#dynamic-field-expansion)
+  - [Deferred Fields](#deferred-fields)
+  - [Deep, Nested Expansion](#deep-nested-expansion)
+  - [Field Expansion on "List" Views <a id="list-views"></a>](#field-expansion-on-list-views-)
+  - [Expanding a "Many" Relationship <a id="expanding-many"></a>](#expanding-a-many-relationship-)
+  - [Dynamically Setting Fields (Sparse Fields) <a id="dynamically-setting-fields"></a>](#dynamically-setting-fields-sparse-fields-)
+  - [Reference serializer as a string (lazy evaluation) <a id="lazy-ref"></a>](#reference-serializer-as-a-string-lazy-evaluation-)
+  - [Increased re-usability of serializers <a id="increased-reuse"></a>](#increased-re-usability-of-serializers-)
+- [Serializer Options](#serializer-options)
 - [Advanced](#advanced)
   - [Customization](#customization)
-  - [Serializer introspection](#serializer-introspection)
-  - [Use "~all" to expand all available fields](#use-all)
-  - [Combining sparse and expanded fields](#combining-sparse-and-expanded)
-  - [Utility functions](#utils)
+  - [Serializer Introspection](#serializer-introspection)
+  - [Use "~all" to Expand All Available Fields <a id="use-all"></a>](#use-all-to-expand-all-available-fields-)
+  - [Combining Sparse Fields and Field Expansion <a id="combining-sparse-and-expanded"></a>](#combining-sparse-fields-and-field-expansion-)
+  - [Utility Functions <a id="utils"></a>](#utility-functions-)
+    - [rest_flex_fields.is_expanded(request, field: str)](#rest_flex_fieldsis_expandedrequest-field-str)
+    - [rest_flex_fields.is_included(request, field: str)](#rest_flex_fieldsis_includedrequest-field-str)
   - [Query optimization (experimental)](#query-optimization-experimental)
-- [Change Log](#changelog)
+- [Changelog <a id="changelog"></a>](#changelog-)
+  - [0.9.0 (April 2021)](#090-april-2021)
+  - [0.8.9 (February 2021)](#089-february-2021)
+  - [0.8.8 (September 2020)](#088-september-2020)
+  - [0.8.6 (September 2020)](#086-september-2020)
+  - [0.8.5 (May 2020)](#085-may-2020)
+  - [0.8.1 (May 2020)](#081-may-2020)
+  - [0.8.0 (April 2020)](#080-april-2020)
+  - [0.7.5 (February 2020)](#075-february-2020)
+  - [0.7.0 (February 2020)](#070-february-2020)
+  - [0.6.1 (September 2019)](#061-september-2019)
+  - [0.5.0 (April 2019)](#050-april-2019)
+  - [0.3.4 (May 2018)](#034-may-2018)
+  - [0.3.3 (April 2018)](#033-april-2018)
 - [Testing](#testing)
 - [License](#license)
 
@@ -346,7 +365,7 @@ To whittle down the fields via URL parameters, simply add `?fields=id,name,count
   "name" : "John Doe",
   "country" : {
     "name" : "United States",
-    "population: 330000000
+    "population": 330000000
   }
 }
 ```
@@ -460,7 +479,7 @@ class PersonSerializer(FlexFieldsModelSerializer):
     expandable_fields = {
       'friends': (
         'serializer.FriendSerializer',
-        {'many': True, "expand": ["hobbies"], "omit": "friends.age"}
+        {'many': True, "expand": ["hobbies"], "omit": ["age"]}
       )
     }
 ```
