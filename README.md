@@ -361,10 +361,10 @@ To whittle down the fields via URL parameters, simply add `?fields=id,name,count
 
 ```json
 {
-  "id" : 13322,
-  "name" : "John Doe",
-  "country" : {
-    "name" : "United States",
+  "id": 13322,
+  "name": "John Doe",
+  "country": {
+    "name": "United States",
     "population": 330000000
   }
 }
@@ -583,6 +583,10 @@ It will automatically call `select_related` and `prefetch_related` on the curren
 **WARNING:** The optimization currently works only for one nesting level.
 
 # Changelog <a id="changelog"></a>
+
+## 0.9.1 (June 2021)
+
+- No longer auto removes `source` argument if it's equal to the field name.
 
 ## 0.9.0 (April 2021)
 

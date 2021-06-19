@@ -99,9 +99,6 @@ class FlexFieldsSerializerMixin(object):
         if name in nested_omit:
             settings["omit"] = nested_omit[name]
 
-        if settings.get("source") == name:
-            del settings["source"]
-
         if type(serializer_class) == str:
             serializer_class = self._get_serializer_class_from_lazy_string(
                 serializer_class
