@@ -104,7 +104,10 @@ class FlexFieldsSerializerMixin(object):
                 serializer_class
             )
 
-        return serializer_class(**settings)
+        serializer = serializer_class(**settings)
+        serializer.context.update(self.context)
+
+        return serializer
 
     def _get_serializer_class_from_lazy_string(self, full_lazy_path: str):
         path_parts = full_lazy_path.split(".")
