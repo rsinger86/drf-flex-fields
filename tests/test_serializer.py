@@ -112,8 +112,10 @@ class TestSerialize(TestCase):
             "owner": {"name": "Fred", "hobbies": "sailing"},
         }
 
-        serializer = PetSerializer(pet, expand=["owner"])
+        request = MockRequest(query_params=MultiValueDict({"expand": ["owner"]}))
+        serializer = PetSerializer(pet, context={"request": request})
         self.assertEqual(serializer.data, expected_serializer_data)
+        self.assertEqual(serializer.fields["owner"].context.get("request"), request)
 
         serializer = PetSerializer(pet, expand=(field for field in ("owner",)))
         self.assertEqual(serializer.data, expected_serializer_data)
@@ -139,8 +141,15 @@ class TestSerialize(TestCase):
             },
         }
 
-        serializer = PetSerializer(pet, expand=["owner.employer"])
+        request = MockRequest(
+            query_params=MultiValueDict({"expand": ["owner.employer"]})
+        )
+        serializer = PetSerializer(pet, context={"request": request})
         self.assertEqual(serializer.data, expected_serializer_data)
+        self.assertEqual(
+            serializer.fields["owner"].fields["employer"].context.get("request"),
+            request,
+        )
 
         serializer = PetSerializer(pet, expand=(field for field in ("owner.employer",)))
         self.assertEqual(serializer.data, expected_serializer_data)
