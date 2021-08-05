@@ -27,9 +27,11 @@ class FlexFieldsSerializerMixin(object):
         expand = list(kwargs.pop(EXPAND_PARAM, []))
         fields = list(kwargs.pop(FIELDS_PARAM, []))
         omit = list(kwargs.pop(OMIT_PARAM, []))
+        parent = kwargs.pop("parent", None)
 
         super(FlexFieldsSerializerMixin, self).__init__(*args, **kwargs)
 
+        self.parent = parent
         self.expanded_fields = []
         self._flex_fields_applied = False
 
@@ -90,6 +92,8 @@ class FlexFieldsSerializerMixin(object):
             serializer_class = field_options
             settings = {}
 
+        settings["parent"] = self
+
         if name in nested_expand:
             settings["expand"] = nested_expand[name]
 
@@ -104,7 +108,8 @@ class FlexFieldsSerializerMixin(object):
                 serializer_class
             )
 
-        return serializer_class(**settings)
+        serializer = serializer_class(**settings)
+        return serializer
 
     def _get_serializer_class_from_lazy_string(self, full_lazy_path: str):
         path_parts = full_lazy_path.split(".")
@@ -227,6 +232,9 @@ class FlexFieldsSerializerMixin(object):
         return self.expandable_fields
 
     def _get_query_param_value(self, field: str) -> List[str]:
+        """
+            Only allowed to examine query params if it's the root serializer.
+        """
         if self.parent:
             return []
 
