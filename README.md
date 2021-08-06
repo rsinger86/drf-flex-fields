@@ -584,6 +584,10 @@ It will automatically call `select_related` and `prefetch_related` on the curren
 
 # Changelog <a id="changelog"></a>
 
+## 0.9.2 (June 2021)
+
+- Ensures `context` dict is passed down to expanded serializers. Thanks @nikeshyad!
+
 ## 0.9.1 (June 2021)
 
 - No longer auto removes `source` argument if it's equal to the field name.
