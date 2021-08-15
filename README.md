@@ -584,6 +584,10 @@ It will automatically call `select_related` and `prefetch_related` on the curren
 
 # Changelog <a id="changelog"></a>
 
+## 0.9.3 (August 2021)
+
+- Fixes bug where custom parameter names were not passed when constructing nested serializers. Thanks @Kandeel4411!
+
 ## 0.9.2 (June 2021)
 
 - Ensures `context` dict is passed down to expanded serializers. Thanks @nikeshyad!
