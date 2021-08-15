@@ -7,6 +7,10 @@ class Company(models.Model):
     public = models.BooleanField(default=False)
 
 
+class PetStore(models.Model):
+    name = models.CharField(max_length=30)
+
+
 class Person(models.Model):
     name = models.CharField(max_length=30)
     hobbies = models.CharField(max_length=30)
@@ -18,4 +22,5 @@ class Pet(models.Model):
     toys = models.CharField(max_length=30)
     species = models.CharField(max_length=30)
     owner = models.ForeignKey(Person, on_delete=models.CASCADE)
+    sold_from = models.ForeignKey(PetStore, null=True, on_delete=models.CASCADE)
     diet = models.CharField(max_length=200)

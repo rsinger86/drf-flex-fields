@@ -8,7 +8,7 @@ from django.urls import reverse
 from rest_framework.test import APITestCase
 
 from rest_flex_fields.filter_backends import FlexFieldsFilterBackend
-from tests.testapp.models import Company, Person, Pet
+from tests.testapp.models import Company, Person, Pet, PetStore
 
 
 class PetViewTests(APITestCase):
@@ -37,6 +37,7 @@ class PetViewTests(APITestCase):
                 "name": "Garfield",
                 "toys": "paper ball, string",
                 "species": "cat",
+                "sold_from": None,
                 "owner": {"name": "Fred", "hobbies": "sailing"},
             },
         )
@@ -75,6 +76,7 @@ class PetViewTests(APITestCase):
                 "name": "Garfield",
                 "toys": "paper ball, string",
                 "species": "cat",
+                "sold_from": None,
                 "owner": {"name": "Fred", "hobbies": "sailing"},
             },
         )
@@ -91,6 +93,7 @@ class PetViewTests(APITestCase):
                 "species": "snake",
                 "toys": "playstation",
                 "name": "Freddy",
+                "sold_from": None,
             },
             format="json",
         )
@@ -101,6 +104,7 @@ class PetViewTests(APITestCase):
                 "name": "Freddy",
                 "diet": "rats",
                 "toys": "playstation",
+                "sold_from": None,
                 "species": "snake",
                 "owner": {"name": "Fred", "hobbies": "sailing"},
             },
@@ -116,6 +120,27 @@ class PetViewTests(APITestCase):
                 "diet": "homemade lasanga",
                 "name": "Garfield",
                 "toys": "paper ball, string",
+                "sold_from": None,
+                "species": "cat",
+                "owner": self.pet.owner_id,
+            },
+        )
+
+    def test_expand_drf_model_serializer(self):
+        petco = PetStore.objects.create(name="PetCo")
+        self.pet.sold_from = petco
+        self.pet.save()
+
+        url = reverse("pet-detail", args=[self.pet.id])
+        response = self.client.get(url + "?expand=sold_from", format="json")
+
+        self.assertEqual(
+            response.data,
+            {
+                "diet": "",
+                "name": "Garfield",
+                "toys": "paper ball, string",
+                "sold_from": {"id": petco.id, "name": "PetCo"},
                 "species": "cat",
                 "owner": self.pet.owner_id,
             },
