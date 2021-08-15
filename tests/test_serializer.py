@@ -24,7 +24,7 @@ class TestSerialize(TestCase):
             owner=Person(name="Fred"),
         )
 
-        expected_serializer_data = {"name": "Garfield", "toys": "paper ball, string"}
+        expected_serializer_data = {"name": "Garfield", "toys": "paper ball, string", "diet": ""}
 
         serializer = PetSerializer(pet, omit=["species", "owner"])
         self.assertEqual(serializer.data, expected_serializer_data)
@@ -41,6 +41,7 @@ class TestSerialize(TestCase):
         )
 
         expected_serializer_data = {
+            "diet": "",
             "name": "Garfield",
             "toys": "paper ball, string",
             "species": "cat",
@@ -50,6 +51,7 @@ class TestSerialize(TestCase):
         serializer = PetSerializer(
             pet, expand=["owner.employer"], omit=["owner.name", "owner.employer.public"]
         )
+
         self.assertEqual(serializer.data, expected_serializer_data)
 
         serializer = PetSerializer(
@@ -85,9 +87,7 @@ class TestSerialize(TestCase):
 
         expected_serializer_data = {"owner": {"employer": {"name": "McDonalds"}}}
 
-        serializer = PetSerializer(
-            pet, expand=["owner.employer"], fields=["owner.employer.name"]
-        )
+        serializer = PetSerializer(pet, expand=["owner.employer"], fields=["owner.employer.name"])
         self.assertEqual(serializer.data, expected_serializer_data)
 
         serializer = PetSerializer(
@@ -110,6 +110,7 @@ class TestSerialize(TestCase):
             "toys": "paper ball, string",
             "species": "cat",
             "owner": {"name": "Fred", "hobbies": "sailing"},
+            "diet": "",
         }
 
         request = MockRequest(query_params=MultiValueDict({"expand": ["owner"]}))
@@ -125,12 +126,11 @@ class TestSerialize(TestCase):
             name="Garfield",
             toys="paper ball, string",
             species="cat",
-            owner=Person(
-                name="Fred", hobbies="sailing", employer=Company(name="McDonalds")
-            ),
+            owner=Person(name="Fred", hobbies="sailing", employer=Company(name="McDonalds")),
         )
 
         expected_serializer_data = {
+            "diet": "",
             "name": "Garfield",
             "toys": "paper ball, string",
             "species": "cat",
@@ -141,9 +141,7 @@ class TestSerialize(TestCase):
             },
         }
 
-        request = MockRequest(
-            query_params=MultiValueDict({"expand": ["owner.employer"]})
-        )
+        request = MockRequest(query_params=MultiValueDict({"expand": ["owner.employer"]}))
         serializer = PetSerializer(pet, context={"request": request})
         self.assertEqual(serializer.data, expected_serializer_data)
         self.assertEqual(
@@ -159,19 +157,16 @@ class TestSerialize(TestCase):
             name="Garfield",
             toys="paper ball, string",
             species="cat",
-            owner=Person(
-                name="Fred", hobbies="sailing", employer=Company(name="McDonalds")
-            ),
+            owner=Person(name="Fred", hobbies="sailing", employer=Company(name="McDonalds")),
         )
 
-        request = MockRequest(
-            query_params=MultiValueDict({"expand": ["owner.employer"]})
-        )
+        request = MockRequest(query_params=MultiValueDict({"expand": ["owner.employer"]}))
         serializer = PetSerializer(pet, context={"request": request})
 
         self.assertEqual(
             serializer.data,
             {
+                "diet": "",
                 "name": "Garfield",
                 "toys": "paper ball, string",
                 "species": "cat",
@@ -193,6 +188,7 @@ class TestSerialize(TestCase):
         )
 
         expected_serializer_data = {
+            "diet": "",
             "name": "Garfield",
             "toys": "paper ball, string",
             "species": "cat",
@@ -211,7 +207,7 @@ class TestSerialize(TestCase):
             owner=Person(name="Fred"),
         )
 
-        expected_serializer_data = {"name": "Garfield", "toys": "paper ball, string"}
+        expected_serializer_data = {"name": "Garfield", "toys": "paper ball, string", "diet": ""}
 
         serializer = PetSerializer(pet, exclude=["species", "owner"])
         self.assertEqual(serializer.data, expected_serializer_data)
@@ -254,6 +250,7 @@ class TestSerialize(TestCase):
                 "toys": "paper ball",
                 "species": "cat",
                 "owner": None,
+                "diet": "lasanga",
             },
         )
 

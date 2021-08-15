@@ -15,9 +15,7 @@ class PetViewTests(APITestCase):
     def setUp(self):
         self.company = Company.objects.create(name="McDonalds")
 
-        self.person = Person.objects.create(
-            name="Fred", hobbies="sailing", employer=self.company
-        )
+        self.person = Person.objects.create(name="Fred", hobbies="sailing", employer=self.company)
 
         self.pet = Pet.objects.create(
             name="Garfield", toys="paper ball, string", species="cat", owner=self.person
@@ -35,6 +33,7 @@ class PetViewTests(APITestCase):
         self.assertEqual(
             response.data,
             {
+                "diet": "",
                 "name": "Garfield",
                 "toys": "paper ball, string",
                 "species": "cat",
@@ -72,6 +71,7 @@ class PetViewTests(APITestCase):
         self.assertEqual(
             response.data[0],
             {
+                "diet": "",
                 "name": "Garfield",
                 "toys": "paper ball, string",
                 "species": "cat",
@@ -86,6 +86,7 @@ class PetViewTests(APITestCase):
         response = self.client.post(
             url,
             {
+                "diet": "rats",
                 "owner": self.person.id,
                 "species": "snake",
                 "toys": "playstation",
@@ -98,9 +99,25 @@ class PetViewTests(APITestCase):
             response.data,
             {
                 "name": "Freddy",
+                "diet": "rats",
                 "toys": "playstation",
                 "species": "snake",
                 "owner": {"name": "Fred", "hobbies": "sailing"},
+            },
+        )
+
+    def test_expand_drf_serializer_field(self):
+        url = reverse("pet-detail", args=[self.pet.id])
+        response = self.client.get(url + "?expand=diet", format="json")
+
+        self.assertEqual(
+            response.data,
+            {
+                "diet": "homemade lasanga",
+                "name": "Garfield",
+                "toys": "paper ball, string",
+                "species": "cat",
+                "owner": self.pet.owner_id,
             },
         )
 

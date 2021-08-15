@@ -18,8 +18,18 @@ class PersonSerializer(FlexFieldsModelSerializer):
 
 class PetSerializer(FlexFieldsModelSerializer):
     owner = serializers.PrimaryKeyRelatedField(queryset=Person.objects.all())
+    diet = serializers.CharField()
 
     class Meta:
         model = Pet
-        fields = ["owner", "name", "toys", "species"]
-        expandable_fields = {"owner": "tests.testapp.PersonSerializer"}
+        fields = ["owner", "name", "toys", "species", "diet"]
+
+        expandable_fields = {
+            "owner": "tests.testapp.PersonSerializer",
+            "diet": serializers.SerializerMethodField,
+        }
+
+    def get_diet(self, obj):
+        if obj.name == "Garfield":
+            return "homemade lasanga"
+        return "pet food"

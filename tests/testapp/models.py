@@ -18,3 +18,4 @@ class Pet(models.Model):
     toys = models.CharField(max_length=30)
     species = models.CharField(max_length=30)
     owner = models.ForeignKey(Person, on_delete=models.CASCADE)
+    diet = models.CharField(max_length=200)
