@@ -15,10 +15,10 @@ from rest_flex_fields import (
 
 class FlexFieldsSerializerMixin(object):
     """
-        A ModelSerializer that takes additional arguments for
-        "fields", "omit" and "expand" in order to
-        control which fields are displayed, and whether to replace simple
-        values with complex, nested serializations
+    A ModelSerializer that takes additional arguments for
+    "fields", "omit" and "expand" in order to
+    control which fields are displayed, and whether to replace simple
+    values with complex, nested serializations
     """
 
     expandable_fields = {}
@@ -49,7 +49,6 @@ class FlexFieldsSerializerMixin(object):
 
     def get_fields(self):
         fields = super().get_fields()
-        print(fields)
         expand_fields, next_expand_fields = split_levels(self._flex_options["expand"])
         sparse_fields, next_sparse_fields = split_levels(self._flex_options["fields"])
         omit_fields, next_omit_fields = split_levels(self._flex_options["omit"])
@@ -73,11 +72,10 @@ class FlexFieldsSerializerMixin(object):
             )
 
         self._flex_fields_applied = True
-        print(fields)
         return fields
 
     def _make_expanded_field_serializer(
-        self, name, nested_expand, nested_fields, nested_omit
+            self, name, nested_expand, nested_fields, nested_omit
     ):
         """
         Returns an instance of the dynamically created nested serializer.
@@ -98,7 +96,7 @@ class FlexFieldsSerializerMixin(object):
 
         settings["context"] = self.context
 
-        if issubclass(serializer_class, FlexFieldsSerializerMixin): 
+        if issubclass(serializer_class, FlexFieldsSerializerMixin):
             settings["parent"] = self
 
             if name in nested_expand:
@@ -110,8 +108,7 @@ class FlexFieldsSerializerMixin(object):
             if name in nested_omit:
                 settings[OMIT_PARAM] = nested_omit[name]
 
-
-        return serializer_class(**settings)            
+        return serializer_class(**settings)
 
     def _get_serializer_class_from_lazy_string(self, full_lazy_path: str):
         path_parts = full_lazy_path.split(".")
@@ -130,7 +127,7 @@ class FlexFieldsSerializerMixin(object):
         raise Exception(error)
 
     def _import_serializer_class(
-        self, path: str, class_name: str
+            self, path: str, class_name: str
     ) -> Tuple[Optional[str], Optional[str]]:
         try:
             module = importlib.import_module(path)
@@ -147,15 +144,15 @@ class FlexFieldsSerializerMixin(object):
             return None, "No class %s class found in module %s" % (path, class_name)
 
     def _get_fields_names_to_remove(
-        self,
-        omit_fields: List[str],
-        sparse_fields: List[str],
-        next_level_omits: List[str],
-        fields,
+            self,
+            omit_fields: List[str],
+            sparse_fields: List[str],
+            next_level_omits: List[str],
+            fields,
     ) -> List[str]:
         """
-            Remove fields that are found in omit list, and if sparse names
-            are passed, remove any fields not found in that list.
+        Remove fields that are found in omit list, and if sparse names
+        are passed, remove any fields not found in that list.
         """
         sparse = len(sparse_fields) > 0
         to_remove = []
@@ -174,19 +171,19 @@ class FlexFieldsSerializerMixin(object):
         return to_remove
 
     def _should_field_exist(
-        self,
-        field_name: str,
-        omit_fields: List[str],
-        sparse_fields: List[str],
-        next_level_omits: List[str],
+            self,
+            field_name: str,
+            omit_fields: List[str],
+            sparse_fields: List[str],
+            next_level_omits: List[str],
     ) -> bool:
         """
-            Next level omits take form of:
-            {
-                'this_level_field': [field_to_omit_at_next_level]
-            }
-            We don't want to prematurely omit a field, eg "omit=house.rooms.kitchen"
-            should not omit the entire house or all the rooms, just the kitchen.
+        Next level omits take form of:
+        {
+            'this_level_field': [field_to_omit_at_next_level]
+        }
+        We don't want to prematurely omit a field, eg "omit=house.rooms.kitchen"
+        should not omit the entire house or all the rooms, just the kitchen.
         """
         if field_name in omit_fields and field_name not in next_level_omits:
             return False
@@ -197,11 +194,11 @@ class FlexFieldsSerializerMixin(object):
         return True
 
     def _get_expanded_field_names(
-        self,
-        expand_fields: List[str],
-        omit_fields: List[str],
-        sparse_fields: List[str],
-        next_level_omits: List[str],
+            self,
+            expand_fields: List[str],
+            omit_fields: List[str],
+            sparse_fields: List[str],
+            next_level_omits: List[str],
     ) -> List[str]:
         if len(expand_fields) == 0:
             return []
@@ -216,7 +213,7 @@ class FlexFieldsSerializerMixin(object):
                 continue
 
             if not self._should_field_exist(
-                name, omit_fields, sparse_fields, next_level_omits
+                    name, omit_fields, sparse_fields, next_level_omits
             ):
                 continue
 
@@ -236,7 +233,7 @@ class FlexFieldsSerializerMixin(object):
 
     def _get_query_param_value(self, field: str) -> List[str]:
         """
-            Only allowed to examine query params if it's the root serializer.
+        Only allowed to examine query params if it's the root serializer.
         """
         if self.parent:
             return []
@@ -256,9 +253,9 @@ class FlexFieldsSerializerMixin(object):
 
     def _get_permitted_expands_from_query_param(self, expand_param: str) -> List[str]:
         """
-            If a list of permitted_expands has been passed to context,
-            make sure that the "expand" fields from the query params
-            comply.
+        If a list of permitted_expands has been passed to context,
+        make sure that the "expand" fields from the query params
+        comply.
         """
         expand = self._get_query_param_value(expand_param)
 
