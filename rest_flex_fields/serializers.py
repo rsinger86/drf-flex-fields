@@ -35,15 +35,6 @@ class FlexFieldsSerializerMixin(object):
         self.expanded_fields = []
         self._flex_fields_rep_applied = False
 
-        self._flex_options_all = {
-            "expand": (
-                expand
-                if len(expand) > 0
-                else self._get_permitted_expands_from_query_param(EXPAND_PARAM)
-            ),
-            "fields": (fields if len(fields) > 0 else self._get_query_param_value(FIELDS_PARAM)),
-            "omit": omit if len(omit) > 0 else self._get_query_param_value(OMIT_PARAM),
-        }
         self._flex_options_base = {
             "expand": expand,
             "fields": fields,
@@ -60,7 +51,11 @@ class FlexFieldsSerializerMixin(object):
                      if not omit else
                      []),
         }
-        # todo solve conflicts
+        self._flex_options_all = {
+            "expand": self._flex_options_base["expand"] + self._flex_options_rep_only["expand"],
+            "fields": self._flex_options_base["fields"] + self._flex_options_rep_only["fields"],
+            "omit": self._flex_options_base["omit"] + self._flex_options_rep_only["omit"],
+        }
 
     def to_representation(self, instance):
         if not self._flex_fields_rep_applied:
