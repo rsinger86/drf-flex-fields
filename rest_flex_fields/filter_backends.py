@@ -34,6 +34,9 @@ class FlexFieldsFilterBackend(BaseFilterBackend):
             context=view.get_serializer_context()
         )
 
+        serializer.apply_flex_fields(serializer.fields, serializer._flex_options_rep_only)
+        serializer._flex_fields_rep_applied = True
+
         model_fields = [
             self._get_field(field.source, queryset.model)
             for field in serializer.fields.values()
