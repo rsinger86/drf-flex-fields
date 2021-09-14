@@ -33,9 +33,9 @@ class FlexFieldsSerializerMixin(object):
 
         self.parent = parent
         self.expanded_fields = []
-        self._flex_fields_applied = False
+        self._flex_fields_rep_applied = False
 
-        self._flex_options = {
+        self._flex_options_all = {
             "expand": (
                 expand
                 if len(expand) > 0
@@ -44,12 +44,39 @@ class FlexFieldsSerializerMixin(object):
             "fields": (fields if len(fields) > 0 else self._get_query_param_value(FIELDS_PARAM)),
             "omit": omit if len(omit) > 0 else self._get_query_param_value(OMIT_PARAM),
         }
+        self._flex_options_base = {
+            "expand": expand,
+            "fields": fields,
+            "omit": omit,
+        }
+        self._flex_options_rep_only = {
+            "expand": (self._get_permitted_expands_from_query_param(EXPAND_PARAM)
+                       if not expand else
+                       []),
+            "fields": (self._get_query_param_value(FIELDS_PARAM)
+                       if not fields else
+                       []),
+            "omit": (self._get_query_param_value(OMIT_PARAM)
+                     if not omit else
+                     []),
+        }
+        # todo solve conflicts
+
+    def to_representation(self, instance):
+        if not self._flex_fields_rep_applied:
+            self.apply_flex_fields(self.fields, self._flex_options_rep_only)
+            self._flex_fields_rep_applied = True
+        return super().to_representation(instance)
 
     def get_fields(self):
         fields = super().get_fields()
-        expand_fields, next_expand_fields = split_levels(self._flex_options["expand"])
-        sparse_fields, next_sparse_fields = split_levels(self._flex_options["fields"])
-        omit_fields, next_omit_fields = split_levels(self._flex_options["omit"])
+        self.apply_flex_fields(fields, self._flex_options_base)
+        return fields
+
+    def apply_flex_fields(self, fields, flex_options):
+        expand_fields, next_expand_fields = split_levels(flex_options["expand"])
+        sparse_fields, next_sparse_fields = split_levels(flex_options["fields"])
+        omit_fields, next_omit_fields = split_levels(flex_options["omit"])
 
         to_remove = self._get_fields_names_to_remove(omit_fields, sparse_fields, next_omit_fields, fields)
 
@@ -66,8 +93,6 @@ class FlexFieldsSerializerMixin(object):
             fields[name] = self._make_expanded_field_serializer(
                 name, next_expand_fields, next_sparse_fields, next_omit_fields
             )
-
-        self._flex_fields_applied = True
         return fields
 
     def _make_expanded_field_serializer(self, name, nested_expand, nested_fields, nested_omit):
@@ -268,4 +293,3 @@ class FlexFieldsSerializerMixin(object):
 
 class FlexFieldsModelSerializer(FlexFieldsSerializerMixin, serializers.ModelSerializer):
     pass
-
