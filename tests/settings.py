@@ -115,3 +115,9 @@ STATIC_URL = "/static/"
 
 
 REST_FLEX_FIELDS = {"EXPAND_PARAM": "expand"}
+
+# In Django 3.2 and onwards, the primary keys are generated using `BigAutoField` instead
+# of `AutoField`. To avoid introducing migrations and silence the configuration warnings,
+# we're setting this to `AutoField`, which is ok for this use case (tests).
+# Reference: https://docs.djangoproject.com/en/3.2/releases/3.2/#customizing-type-of-auto-created-primary-keys
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
