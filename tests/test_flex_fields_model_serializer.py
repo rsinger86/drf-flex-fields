@@ -32,8 +32,8 @@ class TestFlexFieldModelSerializer(TestCase):
 
     def test_clean_fields(self):
         serializer = FlexFieldsModelSerializer()
-        serializer.fields = {"cat": 1, "dog": 2, "zebra": 3}
-        result = serializer._get_fields_names_to_remove(["cat"], [], {})
+        fields = {"cat": 1, "dog": 2, "zebra": 3}
+        result = serializer._get_fields_names_to_remove(["cat"], [], {}, fields)
         self.assertEqual(result, ["cat"])
 
     def test_get_expanded_field_names_if_all(self):
@@ -83,7 +83,7 @@ class TestFlexFieldModelSerializer(TestCase):
             },
         )
 
-        self.assertEqual(serializer._flex_options["omit"], ["fish"])
+        self.assertEqual(serializer._flex_options_all["omit"], ["fish"])
 
     def test_set_omit_input_from_query_param(self):
         serializer = FlexFieldsModelSerializer(
@@ -93,7 +93,7 @@ class TestFlexFieldModelSerializer(TestCase):
                 )
             }
         )
-        self.assertEqual(serializer._flex_options["omit"], ["cat", "dog"])
+        self.assertEqual(serializer._flex_options_all["omit"], ["cat", "dog"])
 
     def test_set_fields_input_from_explicit_settings(self):
         serializer = FlexFieldsModelSerializer(
@@ -105,7 +105,7 @@ class TestFlexFieldModelSerializer(TestCase):
             },
         )
 
-        self.assertEqual(serializer._flex_options["fields"], ["fish"])
+        self.assertEqual(serializer._flex_options_all["fields"], ["fish"])
 
     def test_set_fields_input_from_query_param(self):
         serializer = FlexFieldsModelSerializer(
@@ -116,7 +116,7 @@ class TestFlexFieldModelSerializer(TestCase):
             }
         )
 
-        self.assertEqual(serializer._flex_options["fields"], ["cat", "dog"])
+        self.assertEqual(serializer._flex_options_all["fields"], ["cat", "dog"])
 
     def test_set_expand_input_from_explicit_setting(self):
         serializer = FlexFieldsModelSerializer(
@@ -128,7 +128,7 @@ class TestFlexFieldModelSerializer(TestCase):
             },
         )
 
-        self.assertEqual(serializer._flex_options["fields"], ["cat"])
+        self.assertEqual(serializer._flex_options_all["fields"], ["cat"])
 
     def test_set_expand_input_from_query_param(self):
         serializer = FlexFieldsModelSerializer(
@@ -139,7 +139,7 @@ class TestFlexFieldModelSerializer(TestCase):
             }
         )
 
-        self.assertEqual(serializer._flex_options["expand"], ["cat", "dog"])
+        self.assertEqual(serializer._flex_options_all["expand"], ["cat", "dog"])
 
     def test_get_expand_input_from_query_param_limit_to_list_permitted(self):
         serializer = FlexFieldsModelSerializer(
@@ -151,7 +151,7 @@ class TestFlexFieldModelSerializer(TestCase):
             }
         )
 
-        self.assertEqual(serializer._flex_options["expand"], ["cat"])
+        self.assertEqual(serializer._flex_options_all["expand"], ["cat"])
 
     def test_parse_request_list_value(self):
         test_params = [
