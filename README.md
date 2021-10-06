@@ -584,6 +584,11 @@ It will automatically call `select_related` and `prefetch_related` on the curren
 
 # Changelog <a id="changelog"></a>
 
+## 0.9.5 (October 2021)
+
+- Adds OpenAPI support. Thanks @soroush-tabesh!
+- Updates tests for Django 3.2 and fixes deprecation warning. Thanks @giovannicimolin!
+
 ## 0.9.3 (August 2021)
 
 - Fixes bug where custom parameter names were not passed when constructing nested serializers. Thanks @Kandeel4411!
