@@ -79,16 +79,15 @@ class FlexFieldsSerializerMixin(object):
         ):
             fields.pop(field_name)
 
-        expanded_field_names = self._get_expanded_field_names(
+        for name in self._get_expanded_field_names(
             expand_fields, omit_fields, sparse_fields, next_omit_fields
-        )
-
-        for name in expanded_field_names:
+        ):
             self.expanded_fields.append(name)
 
             fields[name] = self._make_expanded_field_serializer(
                 name, next_expand_fields, next_sparse_fields, next_omit_fields
             )
+
         return fields
 
     def _make_expanded_field_serializer(
