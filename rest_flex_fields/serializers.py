@@ -8,7 +8,7 @@ from rest_flex_fields import (
     EXPAND_PARAM,
     FIELDS_PARAM,
     OMIT_PARAM,
-    WILDCARD_EXPAND_VALUES,
+    WILDCARD_VALUES,
     split_levels,
 )
 
@@ -41,20 +41,21 @@ class FlexFieldsSerializerMixin(object):
             "omit": omit,
         }
         self._flex_options_rep_only = {
-            "expand": (self._get_permitted_expands_from_query_param(EXPAND_PARAM)
-                       if not expand else
-                       []),
-            "fields": (self._get_query_param_value(FIELDS_PARAM)
-                       if not fields else
-                       []),
-            "omit": (self._get_query_param_value(OMIT_PARAM)
-                     if not omit else
-                     []),
+            "expand": (
+                self._get_permitted_expands_from_query_param(EXPAND_PARAM)
+                if not expand
+                else []
+            ),
+            "fields": (self._get_query_param_value(FIELDS_PARAM) if not fields else []),
+            "omit": (self._get_query_param_value(OMIT_PARAM) if not omit else []),
         }
         self._flex_options_all = {
-            "expand": self._flex_options_base["expand"] + self._flex_options_rep_only["expand"],
-            "fields": self._flex_options_base["fields"] + self._flex_options_rep_only["fields"],
-            "omit": self._flex_options_base["omit"] + self._flex_options_rep_only["omit"],
+            "expand": self._flex_options_base["expand"]
+            + self._flex_options_rep_only["expand"],
+            "fields": self._flex_options_base["fields"]
+            + self._flex_options_rep_only["fields"],
+            "omit": self._flex_options_base["omit"]
+            + self._flex_options_rep_only["omit"],
         }
 
     def to_representation(self, instance):
@@ -73,9 +74,9 @@ class FlexFieldsSerializerMixin(object):
         sparse_fields, next_sparse_fields = split_levels(flex_options["fields"])
         omit_fields, next_omit_fields = split_levels(flex_options["omit"])
 
-        to_remove = self._get_fields_names_to_remove(omit_fields, sparse_fields, next_omit_fields, fields)
-
-        for field_name in to_remove:
+        for field_name in self._get_fields_names_to_remove(
+            fields, omit_fields, sparse_fields, next_omit_fields
+        ):
             fields.pop(field_name)
 
         expanded_field_names = self._get_expanded_field_names(
@@ -90,7 +91,9 @@ class FlexFieldsSerializerMixin(object):
             )
         return fields
 
-    def _make_expanded_field_serializer(self, name, nested_expand, nested_fields, nested_omit):
+    def _make_expanded_field_serializer(
+        self, name, nested_expand, nested_fields, nested_omit
+    ):
         """
         Returns an instance of the dynamically created nested serializer.
         """
@@ -104,7 +107,9 @@ class FlexFieldsSerializerMixin(object):
             settings = {}
 
         if type(serializer_class) == str:
-            serializer_class = self._get_serializer_class_from_lazy_string(serializer_class)
+            serializer_class = self._get_serializer_class_from_lazy_string(
+                serializer_class
+            )
 
         if issubclass(serializer_class, serializers.Serializer):
             settings["context"] = self.context
@@ -147,7 +152,8 @@ class FlexFieldsSerializerMixin(object):
         except ImportError:
             return (
                 None,
-                "No module found at path: %s when trying to import %s" % (path, class_name),
+                "No module found at path: %s when trying to import %s"
+                % (path, class_name),
             )
 
         try:
@@ -157,10 +163,10 @@ class FlexFieldsSerializerMixin(object):
 
     def _get_fields_names_to_remove(
         self,
+        current_fields: List[str],
         omit_fields: List[str],
         sparse_fields: List[str],
         next_level_omits: List[str],
-        fields,
     ) -> List[str]:
         """
         Remove fields that are found in omit list, and if sparse names
@@ -172,7 +178,7 @@ class FlexFieldsSerializerMixin(object):
         if not sparse and len(omit_fields) == 0:
             return to_remove
 
-        for field_name in fields:
+        for field_name in current_fields:
             should_exist = self._should_field_exist(
                 field_name, omit_fields, sparse_fields, next_level_omits
             )
@@ -199,11 +205,12 @@ class FlexFieldsSerializerMixin(object):
         """
         if field_name in omit_fields and field_name not in next_level_omits:
             return False
-
-        if len(sparse_fields) > 0 and field_name not in sparse_fields:
+        elif self._contains_wildcard_value(sparse_fields):
+            return True
+        elif len(sparse_fields) > 0 and field_name not in sparse_fields:
             return False
-
-        return True
+        else:
+            return True
 
     def _get_expanded_field_names(
         self,
@@ -215,7 +222,7 @@ class FlexFieldsSerializerMixin(object):
         if len(expand_fields) == 0:
             return []
 
-        if self._contains_wildcard_expand_value(expand_fields):
+        if self._contains_wildcard_value(expand_fields):
             expand_fields = self._expandable_fields.keys()
 
         accum = []
@@ -224,7 +231,9 @@ class FlexFieldsSerializerMixin(object):
             if name not in self._expandable_fields:
                 continue
 
-            if not self._should_field_exist(name, omit_fields, sparse_fields, next_level_omits):
+            if not self._should_field_exist(
+                name, omit_fields, sparse_fields, next_level_omits
+            ):
                 continue
 
             accum.append(name)
@@ -272,17 +281,17 @@ class FlexFieldsSerializerMixin(object):
         if "permitted_expands" in self.context:
             permitted_expands = self.context["permitted_expands"]
 
-            if self._contains_wildcard_expand_value(expand):
+            if self._contains_wildcard_value(expand):
                 return permitted_expands
             else:
                 return list(set(expand) & set(permitted_expands))
 
         return expand
 
-    def _contains_wildcard_expand_value(self, expand_values: List[str]) -> bool:
-        if WILDCARD_EXPAND_VALUES is None:
+    def _contains_wildcard_value(self, expand_values: List[str]) -> bool:
+        if WILDCARD_VALUES is None:
             return False
-        intersecting_values = list(set(expand_values) & set(WILDCARD_EXPAND_VALUES))
+        intersecting_values = list(set(expand_values) & set(WILDCARD_VALUES))
         return len(intersecting_values) > 0
 
 
