@@ -37,18 +37,17 @@ class FlexFieldsFilterBackend(BaseFilterBackend):
         serializer.apply_flex_fields(serializer.fields, serializer._flex_options_rep_only)
         serializer._flex_fields_rep_applied = True
 
-        model_fields = [
-            self._get_field(field.source, queryset.model)
-            for field in serializer.fields.values()
-            if self._get_field(field.source, queryset.model)
-        ]
-
-        nested_model_fields = [
-            self._get_field(field.source, queryset.model)
-            for field in serializer.fields.values()
-            if self._get_field(field.source, queryset.model)
-            and field.field_name in serializer.expanded_fields
-        ]
+        model_fields = []
+        nested_model_fields = []
+        for field in serializer.fields.values():
+            model_field = self._get_field(field.source, queryset.model)
+            if model_field:
+                model_fields.append(model_field)
+                if (
+                    field.field_name in serializer.expanded_fields or
+                    (model_field.is_relation and not model_field.many_to_one)
+                ):
+                    nested_model_fields.append(model_field)
 
         if auto_remove_fields_from_query:
             queryset = queryset.only(
