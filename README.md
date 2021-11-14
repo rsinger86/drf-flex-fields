@@ -107,19 +107,6 @@ GET /people/142/?expand=country.states
     - [rest_flex_fields.is_included(request, field: str)](#rest_flex_fieldsis_includedrequest-field-str)
   - [Query optimization (experimental)](#query-optimization-experimental)
 - [Changelog <a id="changelog"></a>](#changelog-)
-  - [0.9.0 (April 2021)](#090-april-2021)
-  - [0.8.9 (February 2021)](#089-february-2021)
-  - [0.8.8 (September 2020)](#088-september-2020)
-  - [0.8.6 (September 2020)](#086-september-2020)
-  - [0.8.5 (May 2020)](#085-may-2020)
-  - [0.8.1 (May 2020)](#081-may-2020)
-  - [0.8.0 (April 2020)](#080-april-2020)
-  - [0.7.5 (February 2020)](#075-february-2020)
-  - [0.7.0 (February 2020)](#070-february-2020)
-  - [0.6.1 (September 2019)](#061-september-2019)
-  - [0.5.0 (April 2019)](#050-april-2019)
-  - [0.3.4 (May 2018)](#034-may-2018)
-  - [0.3.3 (April 2018)](#033-april-2018)
 - [Testing](#testing)
 - [License](#license)
 
@@ -515,7 +502,7 @@ When using an instance of `FlexFieldsModelSerializer`, you can examine the prope
 
 ## Use of Wildcard to Match All Fields <a id="use-all"></a>
 
-You can pass `expand=*` ([or to another value of your choosing](#customization)) to automatically expand all fields that are available for expansion at a given level. To refer to nested resources, you can use dot-notation. For example, requesting `expand=menu.sections` for a restaurant resource would expand its nested `menu` resource, as well as that menu's nested `sections` resource.
+You can pass `expand=*` ([or another value of your choosing](#customization)) to automatically expand all fields that are available for expansion at a given level. To refer to nested resources, you can use dot-notation. For example, requesting `expand=menu.sections` for a restaurant resource would expand its nested `menu` resource, as well as that menu's nested `sections` resource.
 
 Or, when requesting sparse fields, you can pass `fields=*` to include only the specified fields at a given level. To refer to nested resources, you can use dot-notation. For example, if you have an `order` resource, you could request all of its fields as well as only two fields on its nested `restaurant` resource with the following: `fields=*,restaurent.name,restaurant.address&expand=restaurant`.
 
