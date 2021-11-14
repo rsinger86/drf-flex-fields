@@ -100,7 +100,7 @@ GET /people/142/?expand=country.states
 - [Advanced](#advanced)
   - [Customization](#customization)
   - [Serializer Introspection](#serializer-introspection)
-  - [Use Wildcards to Match Multiple Fields <a id="use-all"></a>](#use-all-to-expand-all-available-fields-)
+  - [Use Wildcards to Match Multiple Fields](#wildcards)
   - [Combining Sparse Fields and Field Expansion <a id="combining-sparse-and-expanded"></a>](#combining-sparse-fields-and-field-expansion-)
   - [Utility Functions <a id="utils"></a>](#utility-functions-)
     - [rest_flex_fields.is_expanded(request, field: str)](#rest_flex_fieldsis_expandedrequest-field-str)
@@ -500,7 +500,7 @@ REST_FLEX_FIELDS = {"EXPAND_PARAM": "include"}
 
 When using an instance of `FlexFieldsModelSerializer`, you can examine the property `expanded_fields` to discover which fields, if any, have been dynamically expanded.
 
-## Use of Wildcard to Match All Fields <a id="use-all"></a>
+## Use of Wildcard to Match All Fields <a id="wildcards"></a>
 
 You can pass `expand=*` ([or another value of your choosing](#customization)) to automatically expand all fields that are available for expansion at a given level. To refer to nested resources, you can use dot-notation. For example, requesting `expand=menu.sections` for a restaurant resource would expand its nested `menu` resource, as well as that menu's nested `sections` resource.
 
