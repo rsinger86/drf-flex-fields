@@ -33,7 +33,7 @@ class TestFlexFieldModelSerializer(TestCase):
     def test_clean_fields(self):
         serializer = FlexFieldsModelSerializer()
         fields = {"cat": 1, "dog": 2, "zebra": 3}
-        result = serializer._get_fields_names_to_remove(["cat"], [], {}, fields)
+        result = serializer._get_fields_names_to_remove(fields, ["cat"], [], {})
         self.assertEqual(result, ["cat"])
 
     def test_get_expanded_field_names_if_all(self):

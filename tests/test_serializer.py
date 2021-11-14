@@ -93,7 +93,9 @@ class TestSerialize(TestCase):
 
         expected_serializer_data = {"owner": {"employer": {"name": "McDonalds"}}}
 
-        serializer = PetSerializer(pet, expand=["owner.employer"], fields=["owner.employer.name"])
+        serializer = PetSerializer(
+            pet, expand=["owner.employer"], fields=["owner.employer.name"]
+        )
         self.assertEqual(serializer.data, expected_serializer_data)
 
         serializer = PetSerializer(
@@ -133,7 +135,9 @@ class TestSerialize(TestCase):
             name="Garfield",
             toys="paper ball, string",
             species="cat",
-            owner=Person(name="Fred", hobbies="sailing", employer=Company(name="McDonalds")),
+            owner=Person(
+                name="Fred", hobbies="sailing", employer=Company(name="McDonalds")
+            ),
         )
 
         expected_serializer_data = {
@@ -149,7 +153,9 @@ class TestSerialize(TestCase):
             "sold_from": None,
         }
 
-        request = MockRequest(query_params=MultiValueDict({"expand": ["owner.employer"]}))
+        request = MockRequest(
+            query_params=MultiValueDict({"expand": ["owner.employer"]})
+        )
         serializer = PetSerializer(pet, context={"request": request})
         self.assertEqual(serializer.data, expected_serializer_data)
         self.assertEqual(
@@ -165,10 +171,14 @@ class TestSerialize(TestCase):
             name="Garfield",
             toys="paper ball, string",
             species="cat",
-            owner=Person(name="Fred", hobbies="sailing", employer=Company(name="McDonalds")),
+            owner=Person(
+                name="Fred", hobbies="sailing", employer=Company(name="McDonalds")
+            ),
         )
 
-        request = MockRequest(query_params=MultiValueDict({"expand": ["owner.employer"]}))
+        request = MockRequest(
+            query_params=MultiValueDict({"expand": ["owner.employer"]})
+        )
         serializer = PetSerializer(pet, context={"request": request})
 
         self.assertEqual(

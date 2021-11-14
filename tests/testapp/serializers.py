@@ -24,7 +24,9 @@ class PetStoreSerializer(serializers.ModelSerializer):
 
 class PetSerializer(FlexFieldsModelSerializer):
     owner = serializers.PrimaryKeyRelatedField(queryset=Person.objects.all())
-    sold_from = serializers.PrimaryKeyRelatedField(queryset=PetStore.objects.all(), allow_null=True)
+    sold_from = serializers.PrimaryKeyRelatedField(
+        queryset=PetStore.objects.all(), allow_null=True
+    )
     diet = serializers.CharField()
 
     class Meta:

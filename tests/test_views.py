@@ -15,7 +15,9 @@ class PetViewTests(APITestCase):
     def setUp(self):
         self.company = Company.objects.create(name="McDonalds")
 
-        self.person = Person.objects.create(name="Fred", hobbies="sailing", employer=self.company)
+        self.person = Person.objects.create(
+            name="Fred", hobbies="sailing", employer=self.company
+        )
 
         self.pet = Pet.objects.create(
             name="Garfield", toys="paper ball, string", species="cat", owner=self.person
@@ -61,6 +63,25 @@ class PetViewTests(APITestCase):
                     "hobbies": "sailing",
                     "employer": {"public": False, "name": "McDonalds"},
                 }
+            },
+        )
+
+    def test_retrieve_all_fields_at_root_and_sparse_fields_at_next_level(self):
+        url = reverse("pet-detail", args=[self.pet.id])
+        url = url + "?fields=*,owner.name&expand=owner"
+        response = self.client.get(url, format="json")
+
+        self.assertEqual(
+            response.data,
+            {
+                "name": "Garfield",
+                "toys": "paper ball, string",
+                "species": "cat",
+                "diet": "",
+                "sold_from": None,
+                "owner": {
+                    "name": "Fred",
+                },
             },
         )
 
