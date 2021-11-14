@@ -100,7 +100,7 @@ GET /people/142/?expand=country.states
 - [Advanced](#advanced)
   - [Customization](#customization)
   - [Serializer Introspection](#serializer-introspection)
-  - [Use "~all" to Expand All Available Fields <a id="use-all"></a>](#use-all-to-expand-all-available-fields-)
+  - [Use Wildcards to Match Multiple Fields <a id="use-all"></a>](#use-all-to-expand-all-available-fields-)
   - [Combining Sparse Fields and Field Expansion <a id="combining-sparse-and-expanded"></a>](#combining-sparse-fields-and-field-expansion-)
   - [Utility Functions <a id="utils"></a>](#utility-functions-)
     - [rest_flex_fields.is_expanded(request, field: str)](#rest_flex_fieldsis_expandedrequest-field-str)
@@ -496,12 +496,12 @@ class PersonSerializer(FlexFieldsModelSerializer):
 
 Parameter names and wildcard values can be configured within a Django setting, named `REST_FLEX_FIELDS`.
 
-| Option                 |                                                           Description                                                            | Default         |
-| ---------------------- | :------------------------------------------------------------------------------------------------------------------------------: | --------------- |
-| EXPAND_PARAM           |                                     The name of the parameter with the fields to be expanded                                     | `"expand"`      |
-| FIELDS_PARAM           |                        The name of the parameter with the fields to be included (others will be omitted)                         | `"fields"`      |
-| OMIT_PARAM             |                                     The name of the parameter with the fields to be omitted                                      | `"omit"`        |
-| WILDCARD_EXPAND_VALUES | List of values that trigger the expansion of all `expandable_fields` when passed to expand parameter. To disable, set to `None`. | `["*", "~all"]` |
+| Option          |                                                           Description                                                            | Default         |
+| --------------- | :------------------------------------------------------------------------------------------------------------------------------: | --------------- |
+| EXPAND_PARAM    |                                     The name of the parameter with the fields to be expanded                                     | `"expand"`      |
+| FIELDS_PARAM    |                        The name of the parameter with the fields to be included (others will be omitted)                         | `"fields"`      |
+| OMIT_PARAM      |                                     The name of the parameter with the fields to be omitted                                      | `"omit"`        |
+| WILDCARD_VALUES | List of values that stand in for all field names. Can be used with the `fields` and `expand` parameters. <br><br>When used with `expand`, a wildcard value will trigger the expansion of all `expandable_fields` at a given level.<br><br>When used with `fields`, all fields are included at a given level. For example, you could pass `fields=name,state.*` if you have a city resource with a nested state in order to expand only the city's name field and all of the state's fields.  <br><br>To disable use of wildcards, set this setting to `None`. | `["*", "~all"]` |
 
 For example, if you want your API to work a bit more like [JSON API](https://jsonapi.org/format/#fetching-includes), you could do:
 
@@ -513,9 +513,11 @@ REST_FLEX_FIELDS = {"EXPAND_PARAM": "include"}
 
 When using an instance of `FlexFieldsModelSerializer`, you can examine the property `expanded_fields` to discover which fields, if any, have been dynamically expanded.
 
-## Use "~all" to Expand All Available Fields <a id="use-all"></a>
+## Use of Wildcard to Match All Fields <a id="use-all"></a>
 
-You can set `expand=~all` ([or to another value of your choosing](#customization)) to automatically expand all fields that are available for expansion. This will take effect only for the top-level serializer; if you need to also expand fields that are present on deeply nested models, then you will need to explicitly pass their values using dot notation.
+You can pass `expand=*` ([or to another value of your choosing](#customization)) to automatically expand all fields that are available for expansion at a given level. To refer to nested resources, you can use dot-notation. For example, requesting `expand=menu.sections` for a restaurant resource would expand its nested `menu` resource, as well as that menu's nested `sections` resource.
+
+Or, when requesting sparse fields, you can pass `fields=*` to include only the specified fields at a given level. To refer to nested resources, you can use dot-notation. For example, if you have an `order` resource, you could request all of its fields as well as only two fields on its nested `restaurant` resource with the following: `fields=*,restaurent.name,restaurant.address&expand=restaurant`.
 
 ## Combining Sparse Fields and Field Expansion <a id="combining-sparse-and-expanded"></a>
 
@@ -583,6 +585,10 @@ It will automatically call `select_related` and `prefetch_related` on the curren
 **WARNING:** The optimization currently works only for one nesting level.
 
 # Changelog <a id="changelog"></a>
+
+## 0.9.6 (November 2021)
+
+- Make it possible to use wildcard values with sparse fields requests.
 
 ## 0.9.5 (October 2021)
 
