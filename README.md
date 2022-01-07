@@ -573,6 +573,9 @@ It will automatically call `select_related` and `prefetch_related` on the curren
 
 # Changelog <a id="changelog"></a>
 
+## 0.9.7 (January 2022)
+- Includes m2m in prefetch_related clause even if they're not expanded. Thanks @pablolmedorado and @ADR-007!
+
 ## 0.9.6 (November 2021)
 
 - Make it possible to use wildcard values with sparse fields requests.
