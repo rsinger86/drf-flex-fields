@@ -9,7 +9,10 @@ from rest_framework.filters import BaseFilterBackend
 from rest_framework.request import Request
 from rest_framework.viewsets import GenericViewSet
 
-from rest_flex_fields.serializers import FlexFieldsSerializerMixin
+from rest_flex_fields.serializers import (
+    FlexFieldsModelSerializer,
+    FlexFieldsSerializerMixin,
+)
 
 
 class FlexFieldsFilterBackend(BaseFilterBackend):
@@ -34,7 +37,9 @@ class FlexFieldsFilterBackend(BaseFilterBackend):
             context=view.get_serializer_context()
         )
 
-        serializer.apply_flex_fields(serializer.fields, serializer._flex_options_rep_only)
+        serializer.apply_flex_fields(
+            serializer.fields, serializer._flex_options_rep_only
+        )
         serializer._flex_fields_rep_applied = True
 
         model_fields = []
@@ -43,9 +48,8 @@ class FlexFieldsFilterBackend(BaseFilterBackend):
             model_field = self._get_field(field.source, queryset.model)
             if model_field:
                 model_fields.append(model_field)
-                if (
-                    field.field_name in serializer.expanded_fields or
-                    (model_field.is_relation and not model_field.many_to_one)
+                if field.field_name in serializer.expanded_fields or (
+                    model_field.is_relation and not model_field.many_to_one
                 ):
                     nested_model_fields.append(model_field)
 
@@ -89,6 +93,10 @@ class FlexFieldsFilterBackend(BaseFilterBackend):
         except FieldDoesNotExist:
             return None
 
+    def _get_extendable_fields(serializer_class: FlexFieldsModelSerializer) -> str:
+        expandable_fields = getattr(serializer_class.Meta, "expandable_fields", {})
+        return ",".join(list(expandable_fields.keys()))
+
     def get_schema_fields(self, view):
         assert (
             coreapi is not None
@@ -97,8 +105,11 @@ class FlexFieldsFilterBackend(BaseFilterBackend):
             coreschema is not None
         ), "coreschema must be installed to use `get_schema_fields()`"
 
-        if not issubclass(view.get_serializer_class(), FlexFieldsSerializerMixin):
+        serializer_class = view.get_serializer_class()
+        if not issubclass(serializer_class, FlexFieldsSerializerMixin):
             return []
+
+        expandable_fields = self._get_extendable_fields(serializer_class)
 
         return [
             coreapi.Field(
@@ -129,14 +140,16 @@ class FlexFieldsFilterBackend(BaseFilterBackend):
                     title="Expanded fields",
                     description="Specify required nested items by comma",
                 ),
-                example="nested1,nested2",
+                example=expandable_fields,
             ),
         ]
 
     def get_schema_operation_parameters(self, view):
-
-        if not issubclass(view.get_serializer_class(), FlexFieldsSerializerMixin):
+        serializer_class = view.get_serializer_class()
+        if not issubclass(serializer_class, FlexFieldsSerializerMixin):
             return []
+
+        expandable_fields = self._get_extendable_fields(serializer_class)
 
         parameters = [
             {
@@ -170,7 +183,7 @@ class FlexFieldsFilterBackend(BaseFilterBackend):
                     "title": "Expanded fields",
                     "type": "string",
                 },
-                "example": "nested1,nested2",
+                "example": expandable_fields,
             },
         ]
 
