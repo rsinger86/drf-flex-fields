@@ -93,7 +93,7 @@ class FlexFieldsFilterBackend(BaseFilterBackend):
         except FieldDoesNotExist:
             return None
 
-    def _get_extendable_fields(serializer_class: FlexFieldsModelSerializer) -> str:
+    def _get_expandable_fields(serializer_class: FlexFieldsModelSerializer) -> str:
         expandable_fields = getattr(serializer_class.Meta, "expandable_fields", {})
         return ",".join(list(expandable_fields.keys()))
 
@@ -109,7 +109,7 @@ class FlexFieldsFilterBackend(BaseFilterBackend):
         if not issubclass(serializer_class, FlexFieldsSerializerMixin):
             return []
 
-        expandable_fields = self._get_extendable_fields(serializer_class)
+        expandable_fields = self._get_expandable_fields(serializer_class)
 
         return [
             coreapi.Field(
@@ -149,7 +149,7 @@ class FlexFieldsFilterBackend(BaseFilterBackend):
         if not issubclass(serializer_class, FlexFieldsSerializerMixin):
             return []
 
-        expandable_fields = self._get_extendable_fields(serializer_class)
+        expandable_fields = self._get_expandable_fields(serializer_class)
 
         parameters = [
             {
