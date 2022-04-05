@@ -3,7 +3,7 @@ asgiref==3.4.1
 attrs==19.1.0
 black==19.3b0
 Click==7.0
-Django==3.2.5
+Django==3.2.12
 djangorestframework==3.12.1
 entrypoints==0.3
 flake8==3.7.7
