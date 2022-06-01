@@ -9,6 +9,15 @@ from rest_framework.filters import BaseFilterBackend
 from rest_framework.request import Request
 from rest_framework.viewsets import GenericViewSet
 
+from rest_flex_fields import (
+    FIELDS_PARAM,
+    EXPAND_PARAM,
+    OMIT_PARAM,
+    WILDCARD_VALUES
+)
+
+WILDCARD_VALUES_JOINED = ",".join(WILDCARD_VALUES)
+
 from rest_flex_fields.serializers import (
     FlexFieldsModelSerializer,
     FlexFieldsSerializerMixin,
@@ -92,10 +101,16 @@ class FlexFieldsFilterBackend(BaseFilterBackend):
             return model._meta.get_field(field_name)
         except FieldDoesNotExist:
             return None
-
+    
+    @staticmethod
     def _get_expandable_fields(serializer_class: FlexFieldsModelSerializer) -> str:
         expandable_fields = getattr(serializer_class.Meta, "expandable_fields", {})
         return ",".join(list(expandable_fields.keys()))
+
+    @staticmethod
+    def _get_fields(serializer_class):
+        fields = getattr(serializer_class.Meta, "fields", [])
+        return ",".join(fields)
 
     def get_schema_fields(self, view):
         assert (
@@ -109,38 +124,39 @@ class FlexFieldsFilterBackend(BaseFilterBackend):
         if not issubclass(serializer_class, FlexFieldsSerializerMixin):
             return []
 
+        fields = self._get_fields(serializer_class)
         expandable_fields = self._get_expandable_fields(serializer_class)
 
         return [
             coreapi.Field(
-                name="fields",
+                name=FIELDS_PARAM,
                 required=False,
                 location="query",
                 schema=coreschema.String(
                     title="Selected fields",
-                    description="Specify required field by comma",
+                    description="Specify required fields by comma",
                 ),
-                example="field1,field2,nested.field",
+                example=(fields or "field1,field2,nested.field") + "," + WILDCARD_VALUES_JOINED,
             ),
             coreapi.Field(
-                name="omit",
+                name=OMIT_PARAM,
                 required=False,
                 location="query",
                 schema=coreschema.String(
                     title="Omitted fields",
-                    description="Specify required field by comma",
+                    description="Specify omitted fields by comma",
                 ),
-                example="field1,field2,nested.field",
+                example=(fields or "field1,field2,nested.field") + "," + WILDCARD_VALUES_JOINED,
             ),
             coreapi.Field(
-                name="expand",
+                name=EXPAND_PARAM,
                 required=False,
                 location="query",
                 schema=coreschema.String(
                     title="Expanded fields",
-                    description="Specify required nested items by comma",
+                    description="Specify expanded fields by comma",
                 ),
-                example=expandable_fields,
+                example=(expandable_fields or "field1,field2,nested.field") + "," + WILDCARD_VALUES_JOINED,
             ),
         ]
 
@@ -149,41 +165,42 @@ class FlexFieldsFilterBackend(BaseFilterBackend):
         if not issubclass(serializer_class, FlexFieldsSerializerMixin):
             return []
 
+        fields = self._get_fields(serializer_class)
         expandable_fields = self._get_expandable_fields(serializer_class)
 
         parameters = [
             {
-                "name": "fields",
+                "name": FIELDS_PARAM,
                 "required": False,
                 "in": "query",
-                "description": "Specify required field by comma",
+                "description": "Specify required fields by comma",
                 "schema": {
                     "title": "Selected fields",
                     "type": "string",
                 },
-                "example": "field1,field2,nested.field",
+                "example": (fields or "field1,field2,nested.field") + "," + WILDCARD_VALUES_JOINED,
             },
             {
-                "name": "omit",
+                "name": OMIT_PARAM,
                 "required": False,
                 "in": "query",
-                "description": "Specify required field by comma",
+                "description": "Specify omitted fields by comma",
                 "schema": {
                     "title": "Omitted fields",
                     "type": "string",
                 },
-                "example": "field1,field2,nested.field",
+                "example": (fields or "field1,field2,nested.field") + "," + WILDCARD_VALUES_JOINED,
             },
             {
-                "name": "expand",
+                "name": EXPAND_PARAM,
                 "required": False,
                 "in": "query",
-                "description": "Specify required field by comma",
+                "description": "Specify expanded fields by comma",
                 "schema": {
                     "title": "Expanded fields",
                     "type": "string",
                 },
-                "example": expandable_fields,
+                "example": (expandable_fields or "field1,field2,nested.field") + "," + WILDCARD_VALUES_JOINED,
             },
         ]
 
