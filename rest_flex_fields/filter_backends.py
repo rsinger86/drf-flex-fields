@@ -92,8 +92,8 @@ class FlexFieldsFilterBackend(BaseFilterBackend):
             return model._meta.get_field(field_name)
         except FieldDoesNotExist:
             return None
-
-    def _get_expandable_fields(self, serializer_class: FlexFieldsModelSerializer) -> str:
+    @staticmethod
+    def _get_expandable_fields(serializer_class: FlexFieldsModelSerializer) -> str:
         expandable_fields = getattr(serializer_class.Meta, "expandable_fields", {})
         return ",".join(list(expandable_fields.keys()))
 
