@@ -9,13 +9,144 @@ from rest_framework.filters import BaseFilterBackend
 from rest_framework.request import Request
 from rest_framework.viewsets import GenericViewSet
 
+from rest_flex_fields import (
+    FIELDS_PARAM,
+    EXPAND_PARAM,
+    OMIT_PARAM,
+    WILDCARD_VALUES
+)
+
+WILDCARD_VALUES_JOINED = ",".join(WILDCARD_VALUES)
+
 from rest_flex_fields.serializers import (
     FlexFieldsModelSerializer,
     FlexFieldsSerializerMixin,
 )
 
 
-class FlexFieldsFilterBackend(BaseFilterBackend):
+class FlexFieldsDocsFilterBackend(BaseFilterBackend):
+    """
+    A dummy filter backend only for schema/documentation purposes.
+    """
+    
+    def filter_queryset(self, request, queryset, view):
+        return queryset
+
+    @staticmethod
+    @lru_cache()
+    def _get_field(field_name: str, model: models.Model) -> Optional[models.Field]:
+        try:
+            # noinspection PyProtectedMember
+            return model._meta.get_field(field_name)
+        except FieldDoesNotExist:
+            return None
+          
+    @staticmethod
+    def _get_expandable_fields(serializer_class: FlexFieldsModelSerializer) -> str:
+        expandable_fields = getattr(serializer_class.Meta, "expandable_fields", {})
+        return ",".join(list(expandable_fields.keys()))
+
+    @staticmethod
+    def _get_fields(serializer_class):
+        fields = getattr(serializer_class.Meta, "fields", [])
+        return ",".join(fields)
+
+    def get_schema_fields(self, view):
+        assert (
+                coreapi is not None
+        ), "coreapi must be installed to use `get_schema_fields()`"
+        assert (
+                coreschema is not None
+        ), "coreschema must be installed to use `get_schema_fields()`"
+
+        serializer_class = view.get_serializer_class()
+        if not issubclass(serializer_class, FlexFieldsSerializerMixin):
+            return []
+
+        fields = self._get_fields(serializer_class)
+        expandable_fields = self._get_expandable_fields(serializer_class)
+
+        return [
+            coreapi.Field(
+                name=FIELDS_PARAM,
+                required=False,
+                location="query",
+                schema=coreschema.String(
+                    title="Selected fields",
+                    description="Specify required fields by comma",
+                ),
+                example=(fields or "field1,field2,nested.field") + "," + WILDCARD_VALUES_JOINED,
+            ),
+            coreapi.Field(
+                name=OMIT_PARAM,
+                required=False,
+                location="query",
+                schema=coreschema.String(
+                    title="Omitted fields",
+                    description="Specify omitted fields by comma",
+                ),
+                example=(fields or "field1,field2,nested.field") + "," + WILDCARD_VALUES_JOINED,
+            ),
+            coreapi.Field(
+                name=EXPAND_PARAM,
+                required=False,
+                location="query",
+                schema=coreschema.String(
+                    title="Expanded fields",
+                    description="Specify expanded fields by comma",
+                ),
+                example=(expandable_fields or "field1,field2,nested.field") + "," + WILDCARD_VALUES_JOINED,
+            ),
+        ]
+
+    def get_schema_operation_parameters(self, view):
+        serializer_class = view.get_serializer_class()
+        if not issubclass(serializer_class, FlexFieldsSerializerMixin):
+            return []
+
+        fields = self._get_fields(serializer_class)
+        expandable_fields = self._get_expandable_fields(serializer_class)
+
+        parameters = [
+            {
+                "name": FIELDS_PARAM,
+                "required": False,
+                "in": "query",
+                "description": "Specify required fields by comma",
+                "schema": {
+                    "title": "Selected fields",
+                    "type": "string",
+                },
+                "example": (fields or "field1,field2,nested.field") + "," + WILDCARD_VALUES_JOINED,
+            },
+            {
+                "name": OMIT_PARAM,
+                "required": False,
+                "in": "query",
+                "description": "Specify omitted fields by comma",
+                "schema": {
+                    "title": "Omitted fields",
+                    "type": "string",
+                },
+                "example": (fields or "field1,field2,nested.field") + "," + WILDCARD_VALUES_JOINED,
+            },
+            {
+                "name": EXPAND_PARAM,
+                "required": False,
+                "in": "query",
+                "description": "Specify expanded fields by comma",
+                "schema": {
+                    "title": "Expanded fields",
+                    "type": "string",
+                },
+                "example": (expandable_fields or "field1,field2,nested.field") + "," + WILDCARD_VALUES_JOINED,
+            },
+        ]
+
+        return parameters
+
+
+class FlexFieldsFilterBackend(FlexFieldsDocsFilterBackend):
     def filter_queryset(
         self, request: Request, queryset: QuerySet, view: GenericViewSet
     ):
@@ -92,99 +223,3 @@ class FlexFieldsFilterBackend(BaseFilterBackend):
             return model._meta.get_field(field_name)
         except FieldDoesNotExist:
             return None
-    @staticmethod
-    def _get_expandable_fields(serializer_class: FlexFieldsModelSerializer) -> str:
-        expandable_fields = getattr(serializer_class.Meta, "expandable_fields", {})
-        return ",".join(list(expandable_fields.keys()))
-
-    def get_schema_fields(self, view):
-        assert (
-            coreapi is not None
-        ), "coreapi must be installed to use `get_schema_fields()`"
-        assert (
-            coreschema is not None
-        ), "coreschema must be installed to use `get_schema_fields()`"
-
-        serializer_class = view.get_serializer_class()
-        if not issubclass(serializer_class, FlexFieldsSerializerMixin):
-            return []
-
-        expandable_fields = self._get_expandable_fields(serializer_class)
-
-        return [
-            coreapi.Field(
-                name="fields",
-                required=False,
-                location="query",
-                schema=coreschema.String(
-                    title="Selected fields",
-                    description="Specify required field by comma",
-                ),
-                example="field1,field2,nested.field",
-            ),
-            coreapi.Field(
-                name="omit",
-                required=False,
-                location="query",
-                schema=coreschema.String(
-                    title="Omitted fields",
-                    description="Specify required field by comma",
-                ),
-                example="field1,field2,nested.field",
-            ),
-            coreapi.Field(
-                name="expand",
-                required=False,
-                location="query",
-                schema=coreschema.String(
-                    title="Expanded fields",
-                    description="Specify required nested items by comma",
-                ),
-                example=expandable_fields,
-            ),
-        ]
-
-    def get_schema_operation_parameters(self, view):
-        serializer_class = view.get_serializer_class()
-        if not issubclass(serializer_class, FlexFieldsSerializerMixin):
-            return []
-
-        expandable_fields = self._get_expandable_fields(serializer_class)
-
-        parameters = [
-            {
-                "name": "fields",
-                "required": False,
-                "in": "query",
-                "description": "Specify required field by comma",
-                "schema": {
-                    "title": "Selected fields",
-                    "type": "string",
-                },
-                "example": "field1,field2,nested.field",
-            },
-            {
-                "name": "omit",
-                "required": False,
-                "in": "query",
-                "description": "Specify required field by comma",
-                "schema": {
-                    "title": "Omitted fields",
-                    "type": "string",
-                },
-                "example": "field1,field2,nested.field",
-            },
-            {
-                "name": "expand",
-                "required": False,
-                "in": "query",
-                "description": "Specify required field by comma",
-                "schema": {
-                    "title": "Expanded fields",
-                    "type": "string",
-                },
-                "example": expandable_fields,
-            },
-        ]
-
-        return parameters
