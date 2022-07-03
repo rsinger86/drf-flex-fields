@@ -483,12 +483,12 @@ class PersonSerializer(FlexFieldsModelSerializer):
 
 Parameter names and wildcard values can be configured within a Django setting, named `REST_FLEX_FIELDS`.
 
-| Option          |                                                           Description                                                            | Default         |
-| --------------- | :------------------------------------------------------------------------------------------------------------------------------: | --------------- |
-| EXPAND_PARAM    |                                     The name of the parameter with the fields to be expanded                                     | `"expand"`      |
-| FIELDS_PARAM    |                        The name of the parameter with the fields to be included (others will be omitted)                         | `"fields"`      |
-| OMIT_PARAM      |                                     The name of the parameter with the fields to be omitted                                      | `"omit"`        |
-| WILDCARD_VALUES | List of values that stand in for all field names. Can be used with the `fields` and `expand` parameters. <br><br>When used with `expand`, a wildcard value will trigger the expansion of all `expandable_fields` at a given level.<br><br>When used with `fields`, all fields are included at a given level. For example, you could pass `fields=name,state.*` if you have a city resource with a nested state in order to expand only the city's name field and all of the state's fields.  <br><br>To disable use of wildcards, set this setting to `None`. | `["*", "~all"]` |
+| Option          |                                                                                                                                                                                                                                                                         Description                                                                                                                                                                                                                                                                          | Default         |
+| --------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | --------------- |
+| EXPAND_PARAM    |                                                                                                                                                                                                                                                   The name of the parameter with the fields to be expanded                                                                                                                                                                                                                                                   | `"expand"`      |
+| FIELDS_PARAM    |                                                                                                                                                                                                                                      The name of the parameter with the fields to be included (others will be omitted)                                                                                                                                                                                                                                       | `"fields"`      |
+| OMIT_PARAM      |                                                                                                                                                                                                                                                   The name of the parameter with the fields to be omitted                                                                                                                                                                                                                                                    | `"omit"`        |
+| WILDCARD_VALUES | List of values that stand in for all field names. Can be used with the `fields` and `expand` parameters. <br><br>When used with `expand`, a wildcard value will trigger the expansion of all `expandable_fields` at a given level.<br><br>When used with `fields`, all fields are included at a given level. For example, you could pass `fields=name,state.*` if you have a city resource with a nested state in order to expand only the city's name field and all of the state's fields. <br><br>To disable use of wildcards, set this setting to `None`. | `["*", "~all"]` |
 
 For example, if you want your API to work a bit more like [JSON API](https://jsonapi.org/format/#fetching-includes), you could do:
 
@@ -573,10 +573,17 @@ It will automatically call `select_related` and `prefetch_related` on the curren
 
 # Changelog <a id="changelog"></a>
 
+## 0.9.9 (July 2022)
+
+- Fixes bug in `FlexFieldsFilterBackend`. Thanks @michaelschem!
+- Adds `FlexFieldsDocsFilterBackend` for schema population. Thanks @Rjevski!
+
 ## 0.9.8 (April 2022)
+
 - Set expandable fields as the default example for expand query parameters in `coreapi.Field`. Thanks @JasperSui!
 
 ## 0.9.7 (January 2022)
+
 - Includes m2m in prefetch_related clause even if they're not expanded. Thanks @pablolmedorado and @ADR-007!
 
 ## 0.9.6 (November 2021)
