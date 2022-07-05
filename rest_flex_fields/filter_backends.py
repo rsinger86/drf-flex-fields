@@ -42,9 +42,20 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
             return None
           
     @staticmethod
-    def _get_expandable_fields(serializer_class: FlexFieldsModelSerializer) -> str:
-        expandable_fields = getattr(serializer_class.Meta, "expandable_fields", {})
-        return ",".join(list(expandable_fields.keys()))
+    def _get_expandable_fields(serializer_class: FlexFieldsModelSerializer) -> list:
+        expandable_fields = list(getattr(serializer_class.Meta, 'expandable_fields').items())
+        expand_list = []
+        while expandable_fields:
+            key, cls = expandable_fields.pop()
+            cls = cls[0] if hasattr(cls, '__iter__') else cls
+
+            expand_list.append(key)
+
+            if hasattr(cls, "Meta") and issubclass(cls, FlexFieldsSerializerMixin):
+                next_layer = getattr(cls.Meta, 'expandable_fields')
+                expandable_fields.extend([(f"{key}.{k}", cls) for k, cls in list(next_layer.items())])
+
+        return expand_list
 
     @staticmethod
     def _get_fields(serializer_class):
@@ -131,15 +142,20 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
                 "example": (fields or "field1,field2,nested.field") + "," + WILDCARD_VALUES_JOINED,
             },
             {
-                "name": EXPAND_PARAM,
+                "name": "expand",
                 "required": False,
                 "in": "query",
-                "description": "Specify expanded fields by comma",
+                "description": "Select fields to expand",
+                "style": "form",
+                "explode": False,
                 "schema": {
                     "title": "Expanded fields",
-                    "type": "string",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": expandable_fields
+                    }
                 },
-                "example": (expandable_fields or "field1,field2,nested.field") + "," + WILDCARD_VALUES_JOINED,
             },
         ]
 
