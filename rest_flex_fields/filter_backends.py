@@ -117,6 +117,7 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
 
         fields = self._get_fields(serializer_class)
         expandable_fields = self._get_expandable_fields(serializer_class)
+        expandable_fields.extend(WILDCARD_VALUES)
 
         parameters = [
             {
