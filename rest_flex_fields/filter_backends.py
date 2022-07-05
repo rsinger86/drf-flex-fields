@@ -142,7 +142,7 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
                 "example": (fields or "field1,field2,nested.field") + "," + WILDCARD_VALUES_JOINED,
             },
             {
-                "name": "expand",
+                "name": EXPAND_PARAM,
                 "required": False,
                 "in": "query",
                 "description": "Select fields to expand",
