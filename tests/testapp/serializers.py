@@ -1,6 +1,8 @@
 from rest_framework import serializers
+from rest_framework.relations import PrimaryKeyRelatedField
+
 from rest_flex_fields import FlexFieldsModelSerializer
-from tests.testapp.models import Pet, PetStore, Person, Company
+from tests.testapp.models import Pet, PetStore, Person, Company, TaggedItem
 
 
 class CompanySerializer(FlexFieldsModelSerializer):
@@ -43,3 +45,16 @@ class PetSerializer(FlexFieldsModelSerializer):
         if obj.name == "Garfield":
             return "homemade lasanga"
         return "pet food"
+
+
+class TaggedItemSerializer(FlexFieldsModelSerializer):
+    content_object = PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = TaggedItem
+        fields = (
+            "id",
+            "content_type",
+            "object_id",
+            "content_object"
+        )
