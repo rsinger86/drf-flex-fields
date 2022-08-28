@@ -573,6 +573,10 @@ It will automatically call `select_related` and `prefetch_related` on the curren
 
 # Changelog <a id="changelog"></a>
 
+## 1.0.0 (August 2022)
+
+- Improvements to the filter backends for generic foreign key handling and docs generation. Thanks @KrYpTeD974 and @michaelschem!
+
 ## 0.9.9 (July 2022)
 
 - Fixes bug in `FlexFieldsFilterBackend`. Thanks @michaelschem!
