@@ -1,4 +1,7 @@
 from __future__ import unicode_literals
+
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
 
@@ -24,3 +27,10 @@ class Pet(models.Model):
     owner = models.ForeignKey(Person, on_delete=models.CASCADE)
     sold_from = models.ForeignKey(PetStore, null=True, on_delete=models.CASCADE)
     diet = models.CharField(max_length=200)
+
+
+class TaggedItem(models.Model):
+    tag = models.SlugField()
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')

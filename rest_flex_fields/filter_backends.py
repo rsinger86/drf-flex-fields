@@ -28,7 +28,7 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
     """
     A dummy filter backend only for schema/documentation purposes.
     """
-    
+
     def filter_queryset(self, request, queryset, view):
         return queryset
 
@@ -40,7 +40,7 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
             return model._meta.get_field(field_name)
         except FieldDoesNotExist:
             return None
-          
+
     @staticmethod
     def _get_expandable_fields(serializer_class: FlexFieldsModelSerializer) -> str:
         expandable_fields = getattr(serializer_class.Meta, "expandable_fields", {})
@@ -179,9 +179,9 @@ class FlexFieldsFilterBackend(FlexFieldsDocsFilterBackend):
             model_field = self._get_field(field.source, queryset.model)
             if model_field:
                 model_fields.append(model_field)
-                if field.field_name in serializer.expanded_fields or (
-                    model_field.is_relation and not model_field.many_to_one
-                ):
+                if field.field_name in serializer.expanded_fields or \
+                        (model_field.is_relation and not model_field.many_to_one) or \
+                        (model_field.is_relation and model_field.many_to_one and not model_field.concrete):  # Include GenericForeignKey
                     nested_model_fields.append(model_field)
 
         if auto_remove_fields_from_query:
@@ -190,8 +190,9 @@ class FlexFieldsFilterBackend(FlexFieldsDocsFilterBackend):
                     required_query_fields
                     + [
                         model_field.name
-                        for model_field in model_fields
-                        if not model_field.is_relation or model_field.many_to_one
+                        for model_field in model_fields if (
+                            not model_field.is_relation or
+                            model_field.many_to_one and model_field.concrete)
                     ]
                 )
             )
@@ -200,16 +201,17 @@ class FlexFieldsFilterBackend(FlexFieldsDocsFilterBackend):
             queryset = queryset.select_related(
                 *(
                     model_field.name
-                    for model_field in nested_model_fields
-                    if model_field.is_relation and model_field.many_to_one
+                    for model_field in nested_model_fields if (
+                            model_field.is_relation and
+                            model_field.many_to_one and
+                            model_field.concrete)  # Exclude GenericForeignKey
                 )
             )
 
-            queryset = queryset.prefetch_related(
-                *(
-                    model_field.name
-                    for model_field in nested_model_fields
-                    if model_field.is_relation and not model_field.many_to_one
+            queryset = queryset.prefetch_related(*(
+                model_field.name for model_field in nested_model_fields if
+                (model_field.is_relation and not model_field.many_to_one) or
+                (model_field.is_relation and model_field.many_to_one and not model_field.concrete)  # Include GenericForeignKey)
                 )
             )
 
