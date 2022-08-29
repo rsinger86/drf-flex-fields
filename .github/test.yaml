@@ -1,0 +1,22 @@
+name: Test
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  Test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Dependancies
+      - run: |
+          pip install -r requirements.txt
+
+      - name: Run Tests
+        run: |
+          python manage.py test
+
+
