@@ -51,7 +51,7 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
 
             expand_list.append(key)
 
-            if hasattr(cls, "Meta") and issubclass(cls, FlexFieldsSerializerMixin):
+            if hasattr(cls, "Meta") and issubclass(cls, FlexFieldsSerializerMixin) and hasattr(cls.Meta, "expandable_fields"):
                 next_layer = getattr(cls.Meta, 'expandable_fields')
                 expandable_fields.extend([(f"{key}.{k}", cls) for k, cls in list(next_layer.items())])
 
