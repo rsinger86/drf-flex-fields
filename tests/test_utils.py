@@ -1,10 +1,12 @@
 from django.test import TestCase
 
-from rest_flex_fields import is_included, is_expanded
+from rest_flex_fields import is_included, is_expanded, WILDCARD_ALL, WILDCARD_ASTERISK
 
 
 class MockRequest(object):
-    def __init__(self, query_params={}, method="GET"):
+    def __init__(self, query_params=None, method="GET"):
+        if query_params is None:
+            query_params = {}
         self.query_params = query_params
         self.method = method
 
@@ -36,4 +38,12 @@ class TestUtils(TestCase):
 
     def test_should_be_expanded_and_has_dot_notation(self):
         request = MockRequest(query_params={"expand": "person.name,address"})
+        self.assertTrue(is_expanded(request, "name"))
+
+    def test_all_should_be_expanded(self):
+        request = MockRequest(query_params={"expand": WILDCARD_ALL})
+        self.assertTrue(is_expanded(request, "name"))
+
+    def test_asterisk_should_be_expanded(self):
+        request = MockRequest(query_params={"expand": WILDCARD_ASTERISK})
         self.assertTrue(is_expanded(request, "name"))
