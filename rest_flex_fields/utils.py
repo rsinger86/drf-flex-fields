@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 
-from rest_flex_fields import EXPAND_PARAM, FIELDS_PARAM, OMIT_PARAM
+from rest_flex_fields import EXPAND_PARAM, FIELDS_PARAM, OMIT_PARAM, WILDCARD_VALUES
 
 
 def is_expanded(request, field: str) -> bool:
@@ -14,7 +14,7 @@ def is_expanded(request, field: str) -> bool:
         for f in expand_value.split(","):
             expand_fields.extend([_ for _ in f.split(".")])
 
-    return "~all" in expand_fields or field in expand_fields
+    return any(field for field in expand_fields if field in WILDCARD_VALUES) or field in expand_fields
 
 
 def is_included(request, field: str) -> bool:
