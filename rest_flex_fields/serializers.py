@@ -1,6 +1,6 @@
 import copy
 import importlib
-from typing import List, Optional, Tuple
+from typing import Dict, List
 
 from rest_framework import serializers
 
@@ -11,6 +11,7 @@ from rest_flex_fields import (
     WILDCARD_VALUES,
     split_levels,
 )
+from rest_flex_fields.expand import Expand
 
 
 class FlexFieldsSerializerMixin(object):
@@ -21,7 +22,7 @@ class FlexFieldsSerializerMixin(object):
     values with complex, nested serializations
     """
 
-    expandable_fields = {}
+    _expandable_fields: Dict[str, Expand]
 
     def __init__(self, *args, **kwargs):
         expand = list(kwargs.pop(EXPAND_PARAM, []))
@@ -29,7 +30,7 @@ class FlexFieldsSerializerMixin(object):
         omit = list(kwargs.pop(OMIT_PARAM, []))
         parent = kwargs.pop("parent", None)
 
-        super(FlexFieldsSerializerMixin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.parent = parent
         self.expanded_fields = []
@@ -57,6 +58,26 @@ class FlexFieldsSerializerMixin(object):
             "omit": self._flex_options_base["omit"]
             + self._flex_options_rep_only["omit"],
         }
+
+    def __init_subclass__(cls) -> None:
+        """
+        Cast expandable field values to Expand instances to simplify
+        instantiating the correct serializer later.
+        """
+        expandable_fields = {}
+
+        if hasattr(cls, "Meta") and hasattr(cls.Meta, "expandable_fields"):
+            expandable_fields = cls.Meta.expandable_fields
+        elif hasattr(cls, "expandable_fields"):
+            expandable_fields = cls.expandable_fields
+
+        for field_name, field_spec in expandable_fields.items():
+            if isinstance(field_spec, Expand):
+                continue
+
+            expandable_fields[field_name] = Expand.init_from_legacy_def(field_spec)
+
+        cls._expandable_fields = expandable_fields
 
     def to_representation(self, instance):
         if not self._flex_fields_rep_applied:
@@ -96,19 +117,10 @@ class FlexFieldsSerializerMixin(object):
         """
         Returns an instance of the dynamically created nested serializer.
         """
-        field_options = self._expandable_fields[name]
+        expand_spec = self._expandable_fields[name]
 
-        if isinstance(field_options, tuple):
-            serializer_class = field_options[0]
-            settings = copy.deepcopy(field_options[1]) if len(field_options) > 1 else {}
-        else:
-            serializer_class = field_options
-            settings = {}
-
-        if type(serializer_class) == str:
-            serializer_class = self._get_serializer_class_from_lazy_string(
-                serializer_class
-            )
+        serializer_class = expand_spec.get_serializer_class()
+        settings = expand_spec.get_base_settings()
 
         if issubclass(serializer_class, serializers.Serializer):
             settings["context"] = self.context
@@ -126,39 +138,6 @@ class FlexFieldsSerializerMixin(object):
                 settings[OMIT_PARAM] = nested_omit[name]
 
         return serializer_class(**settings)
-
-    def _get_serializer_class_from_lazy_string(self, full_lazy_path: str):
-        path_parts = full_lazy_path.split(".")
-        class_name = path_parts.pop()
-        path = ".".join(path_parts)
-        serializer_class, error = self._import_serializer_class(path, class_name)
-
-        if error and not path.endswith(".serializers"):
-            serializer_class, error = self._import_serializer_class(
-                path + ".serializers", class_name
-            )
-
-        if serializer_class:
-            return serializer_class
-
-        raise Exception(error)
-
-    def _import_serializer_class(
-        self, path: str, class_name: str
-    ) -> Tuple[Optional[str], Optional[str]]:
-        try:
-            module = importlib.import_module(path)
-        except ImportError:
-            return (
-                None,
-                "No module found at path: %s when trying to import %s"
-                % (path, class_name),
-            )
-
-        try:
-            return getattr(module, class_name), None
-        except AttributeError:
-            return None, "No class %s class found in module %s" % (path, class_name)
 
     def _get_fields_names_to_remove(
         self,
@@ -238,16 +217,6 @@ class FlexFieldsSerializerMixin(object):
             accum.append(name)
 
         return accum
-
-    @property
-    def _expandable_fields(self) -> dict:
-        """It's more consistent with DRF to declare the expandable fields
-        on the Meta class, however we need to support both places
-        for legacy reasons."""
-        if hasattr(self, "Meta") and hasattr(self.Meta, "expandable_fields"):
-            return self.Meta.expandable_fields
-
-        return self.expandable_fields
 
     def _get_query_param_value(self, field: str) -> List[str]:
         """

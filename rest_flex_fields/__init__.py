@@ -27,3 +27,4 @@ if type(WILDCARD_VALUES) not in (list, None):
 from .utils import *
 from .serializers import FlexFieldsModelSerializer
 from .views import FlexFieldsModelViewSet
+from .expand import Expand
