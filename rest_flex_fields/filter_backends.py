@@ -75,7 +75,7 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
             return []
 
         fields = self._get_fields(serializer_class)
-        expandable_fields = self._get_expandable_fields(serializer_class)
+        expandable_fields_joined = ",".join(self._get_expandable_fields(serializer_class))
 
         return [
             coreapi.Field(
@@ -106,7 +106,7 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
                     title="Expanded fields",
                     description="Specify expanded fields by comma",
                 ),
-                example=(expandable_fields or "field1,field2,nested.field") + "," + WILDCARD_VALUES_JOINED,
+                example=(expandable_fields_joined or "field1,field2,nested.field") + "," + WILDCARD_VALUES_JOINED,
             ),
         ]
 
