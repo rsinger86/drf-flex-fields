@@ -10,11 +10,21 @@ def is_expanded(request, field: str) -> bool:
     expand_value = request.query_params.get(EXPAND_PARAM)
     expand_fields = []
 
-    if expand_value:
-        for f in expand_value.split(","):
-            expand_fields.extend([_ for _ in f.split(".")])
+    # first split on commas to get each expand
+    for full in expand_value.split(","):
+        # than split on dots to get each component that is expanded
+        parts = full.split(".")
+        for i in range(len(parts)):
+            # add each prefix, as each prefix is epxanded, ie
+            # a.b.c will add a, a.b and a.b.c to the expand_fields list
+            # we do this to differentiate a.b from b
+            expand_fields.append(".".join(parts[: i + 1]))
 
-    return any(field for field in expand_fields if field in WILDCARD_VALUES) or field in expand_fields
+    # WILDCARD_VALUES only expands top level fields
+    if "." not in field and any(field for field in expand_fields if field in WILDCARD_VALUES):
+        return True
+
+    return field in expand_fields
 
 
 def is_included(request, field: str) -> bool:

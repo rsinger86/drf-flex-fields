@@ -28,22 +28,27 @@ class TestUtils(TestCase):
         request = MockRequest(query_params={"fields": "hobby,address"})
         self.assertFalse(is_included(request, "name"))
 
-    def test_should_be_expanded(self):
-        request = MockRequest(query_params={"expand": "name,address"})
-        self.assertTrue(is_expanded(request, "name"))
-
-    def test_should_not_be_expanded(self):
-        request = MockRequest(query_params={"expand": "name,address"})
-        self.assertFalse(is_expanded(request, "hobby"))
-
-    def test_should_be_expanded_and_has_dot_notation(self):
-        request = MockRequest(query_params={"expand": "person.name,address"})
-        self.assertTrue(is_expanded(request, "name"))
-
-    def test_all_should_be_expanded(self):
-        request = MockRequest(query_params={"expand": WILDCARD_ALL})
-        self.assertTrue(is_expanded(request, "name"))
-
-    def test_asterisk_should_be_expanded(self):
-        request = MockRequest(query_params={"expand": WILDCARD_ASTERISK})
-        self.assertTrue(is_expanded(request, "name"))
+    def test_is_expanded(self):
+        test_cases = [
+            ("a", "a", True),
+            ("a", "b", False),
+            ("a,b,c", "a", True),
+            ("a,b,c", "b", True),
+            ("a,b,c", "c", True),
+            ("a,b,c", "d", False),
+            ("a.b.c", "a", True),
+            ("a.b.c", "a.b", True),
+            ("a.b.c", "a.b.c", True),
+            ("a.b.c", "b", False),
+            ("a.b.c", "c", False),
+            ("a.b.c", "d", False),
+            ("a.b.c,d", "a", True),
+            ("a.b.c,d", "d", True),
+            (WILDCARD_ASTERISK, "a", True),
+            (WILDCARD_ASTERISK, "a.b", False),
+            (WILDCARD_ALL, "a", True),
+            (WILDCARD_ALL, "a.b", False),
+        ]
+        for expand_query_arg, field, should_be_expanded in test_cases:
+            request = MockRequest(query_params={"expand": expand_query_arg})
+            self.assertEqual(is_expanded(request, field), should_be_expanded)
