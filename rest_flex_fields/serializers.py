@@ -293,7 +293,7 @@ class FlexFieldsSerializerMixin(object):
     def _split_expand_field(self, expand_path: str) -> List[str]:
         return expand_path.split('.')
 
-    def _recursive_expansion_found(self):
+    def _recursive_expansion_not_permitted(self):
         """
         A customized exception can be raised when recursive expansion is found, default ValidationError
         """
@@ -313,7 +313,7 @@ class FlexFieldsSerializerMixin(object):
         expansion_length = len(expansion_path)
         expansion_length_unique = len(set(expansion_path))
         if expansion_length != expansion_length_unique:
-            self._recursive_expansion_found()
+            self._recursive_expansion_not_permitted()
 
     def _expansion_depth_exceeded(self):
         """
