@@ -196,7 +196,7 @@ class TestFlexFieldModelSerializer(TestCase):
                 }
             )
 
-    @patch('rest_flex_fields.FlexFieldsModelSerializer._recursive_expansion_permitted', new_callable=PropertyMock)
+    @patch('rest_flex_fields.FlexFieldsModelSerializer.recursive_expansion_permitted', new_callable=PropertyMock)
     def test_recursive_expansion_serializer_level(self, mock_recursive_expansion_permitted):
         mock_recursive_expansion_permitted.return_value = False
 
@@ -231,7 +231,7 @@ class TestFlexFieldModelSerializer(TestCase):
                 }
             )
 
-    @patch('rest_flex_fields.FlexFieldsModelSerializer._maximum_expansion_depth', new_callable=PropertyMock)
+    @patch('rest_flex_fields.FlexFieldsModelSerializer.maximum_expansion_depth', new_callable=PropertyMock)
     def test_expansion_depth_serializer_level(self, mock_maximum_expansion_depth):
         mock_maximum_expansion_depth.return_value = 3
         serializer = FlexFieldsModelSerializer(
@@ -243,7 +243,7 @@ class TestFlexFieldModelSerializer(TestCase):
         )
         self.assertEqual(serializer._flex_options_all["expand"], ["dog.leg.paws"])
 
-    @patch('rest_flex_fields.FlexFieldsModelSerializer._maximum_expansion_depth', new_callable=PropertyMock)
+    @patch('rest_flex_fields.FlexFieldsModelSerializer.maximum_expansion_depth', new_callable=PropertyMock)
     def test_expansion_depth_serializer_level_exception(self, mock_maximum_expansion_depth):
         mock_maximum_expansion_depth.return_value = 2
         with self.assertRaises(serializers.ValidationError):
