@@ -282,6 +282,10 @@ class FlexFieldsSerializerMixin(object):
         if not values:
             values = self.context["request"].query_params.getlist("{}[]".format(field))
 
+        for expand_path in values:
+            self._validate_recursive_expansion(expand_path)
+            self._validate_expansion_depth(expand_path)
+
         if values and len(values) == 1:
             return values[0].split(",")
 
@@ -342,10 +346,6 @@ class FlexFieldsSerializerMixin(object):
         comply.
         """
         expand = self._get_query_param_value(expand_param)
-
-        for expand_path in expand:
-            self._validate_recursive_expansion(expand_path)
-            self._validate_expansion_depth(expand_path)
 
         if "permitted_expands" in self.context:
             permitted_expands = self.context["permitted_expands"]
