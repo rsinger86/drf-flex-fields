@@ -34,3 +34,4 @@ if type(RECURSIVE_EXPANSION_PERMITTED) is not bool:
 from .utils import *
 from .serializers import FlexFieldsModelSerializer
 from .views import FlexFieldsModelViewSet
+from .expand import Expand

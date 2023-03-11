@@ -44,25 +44,25 @@ class TestFlexFieldModelSerializer(TestCase):
 
     def test_get_expanded_field_names_if_all(self):
         serializer = FlexFieldsModelSerializer()
-        serializer.expandable_fields = {"cat": "field", "dog": "field"}
+        serializer._expandable_fields = {"cat": "field", "dog": "field"}
         result = serializer._get_expanded_field_names("*", [], [], {})
         self.assertEqual(result, ["cat", "dog"])
 
     def test_get_expanded_names_but_not_omitted(self):
         serializer = FlexFieldsModelSerializer()
-        serializer.expandable_fields = {"cat": "field", "dog": "field"}
+        serializer._expandable_fields = {"cat": "field", "dog": "field"}
         result = serializer._get_expanded_field_names(["cat", "dog"], ["cat"], [], {})
         self.assertEqual(result, ["dog"])
 
     def test_get_expanded_names_but_only_sparse(self):
         serializer = FlexFieldsModelSerializer()
-        serializer.expandable_fields = {"cat": "field", "dog": "field"}
+        serializer._expandable_fields = {"cat": "field", "dog": "field"}
         result = serializer._get_expanded_field_names(["cat"], [], ["cat"], {})
         self.assertEqual(result, ["cat"])
 
     def test_get_expanded_names_including_omitted_when_defer_to_next_level(self):
         serializer = FlexFieldsModelSerializer()
-        serializer.expandable_fields = {"cat": "field", "dog": "field"}
+        serializer._expandable_fields = {"cat": "field", "dog": "field"}
         result = serializer._get_expanded_field_names(
             ["cat"], ["cat"], [], {"cat": ["age"]}
         )
