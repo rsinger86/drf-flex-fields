@@ -2,6 +2,7 @@ import copy
 import importlib
 from typing import List, Optional, Tuple
 
+from django.conf import settings
 from rest_framework import serializers
 
 from rest_flex_fields import (
@@ -22,6 +23,8 @@ class FlexFieldsSerializerMixin(object):
     """
 
     expandable_fields = {}
+    maximum_expansion_depth: Optional[int] = None
+    recursive_expansion_permitted: Optional[bool] = None
 
     def __init__(self, *args, **kwargs):
         expand = list(kwargs.pop(EXPAND_PARAM, []))
@@ -57,6 +60,21 @@ class FlexFieldsSerializerMixin(object):
             "omit": self._flex_options_base["omit"]
             + self._flex_options_rep_only["omit"],
         }
+
+    def get_maximum_expansion_depth(self) -> Optional[int]:
+        """
+        Defined at serializer level or based on MAXIMUM_EXPANSION_DEPTH setting
+        """
+        return self.maximum_expansion_depth or settings.REST_FLEX_FIELDS.get("MAXIMUM_EXPANSION_DEPTH", None)
+
+    def get_recursive_expansion_permitted(self) -> bool:
+        """
+        Defined at serializer level or based on RECURSIVE_EXPANSION_PERMITTED setting
+        """
+        if self.recursive_expansion_permitted is not None:
+            return self.recursive_expansion_permitted
+        else:
+            return settings.REST_FLEX_FIELDS.get("RECURSIVE_EXPANSION_PERMITTED", True)
 
     def to_representation(self, instance):
         if not self._flex_fields_rep_applied:
@@ -264,10 +282,62 @@ class FlexFieldsSerializerMixin(object):
         if not values:
             values = self.context["request"].query_params.getlist("{}[]".format(field))
 
+        for expand_path in values:
+            self._validate_recursive_expansion(expand_path)
+            self._validate_expansion_depth(expand_path)
+
         if values and len(values) == 1:
             return values[0].split(",")
 
         return values or []
+
+    def _split_expand_field(self, expand_path: str) -> List[str]:
+        return expand_path.split('.')
+
+    def recursive_expansion_not_permitted(self):
+        """
+        A customized exception can be raised when recursive expansion is found, default ValidationError
+        """
+        raise serializers.ValidationError(detail="Recursive expansion found")
+
+    def _validate_recursive_expansion(self, expand_path: str) -> None:
+        """
+        Given an expand_path, a dotted-separated string,
+        an Exception is raised when a recursive
+        expansion is detected.
+        Only applies when REST_FLEX_FIELDS["RECURSIVE_EXPANSION"] setting is False.
+        """
+        recursive_expansion_permitted = self.get_recursive_expansion_permitted()
+        if recursive_expansion_permitted is True:
+            return
+
+        expansion_path = self._split_expand_field(expand_path)
+        expansion_length = len(expansion_path)
+        expansion_length_unique = len(set(expansion_path))
+        if expansion_length != expansion_length_unique:
+            self.recursive_expansion_not_permitted()
+
+    def expansion_depth_exceeded(self):
+        """
+        A customized exception can be raised when expansion depth is found, default ValidationError
+        """
+        raise serializers.ValidationError(detail="Expansion depth exceeded")
+
+    def _validate_expansion_depth(self, expand_path: str) -> None:
+        """
+        Given an expand_path, a dotted-separated string,
+        an Exception is raised when expansion level is
+        greater than the `expansion_depth` property configuration.
+        Only applies when REST_FLEX_FIELDS["EXPANSION_DEPTH"] setting is set
+        or serializer has its own expansion configuration through default_expansion_depth attribute.
+        """
+        maximum_expansion_depth = self.get_maximum_expansion_depth()
+        if maximum_expansion_depth is None:
+            return
+
+        expansion_path = self._split_expand_field(expand_path)
+        if len(expansion_path) > maximum_expansion_depth:
+            self.expansion_depth_exceeded()
 
     def _get_permitted_expands_from_query_param(self, expand_param: str) -> List[str]:
         """

@@ -10,7 +10,9 @@ from tests.testapp.serializers import PetSerializer
 
 
 class MockRequest(object):
-    def __init__(self, query_params={}, method="GET"):
+    def __init__(self, query_params=None, method="GET"):
+        if query_params is None:
+            query_params = {}
         self.query_params = query_params
         self.method = method
 
