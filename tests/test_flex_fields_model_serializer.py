@@ -185,26 +185,33 @@ class TestFlexFieldModelSerializer(TestCase):
     def test_make_expanded_field_serializer(self):
         pass
 
-    @override_settings(REST_FLEX_FIELDS={"RECURSIVE_EXPANSION_PERMITTED": False})
+    @patch("rest_flex_fields.serializers.RECURSIVE_EXPANSION_PERMITTED", False)
     def test_recursive_expansion(self):
         with self.assertRaises(serializers.ValidationError):
             FlexFieldsModelSerializer(
                 context={
                     "request": MockRequest(
-                        method="GET", query_params=MultiValueDict({"expand": ["dog.leg.dog"]})
+                        method="GET",
+                        query_params=MultiValueDict({"expand": ["dog.leg.dog"]}),
                     )
                 }
             )
 
-    @patch('rest_flex_fields.FlexFieldsModelSerializer.recursive_expansion_permitted', new_callable=PropertyMock)
-    def test_recursive_expansion_serializer_level(self, mock_recursive_expansion_permitted):
+    @patch(
+        "rest_flex_fields.FlexFieldsModelSerializer.recursive_expansion_permitted",
+        new_callable=PropertyMock,
+    )
+    def test_recursive_expansion_serializer_level(
+        self, mock_recursive_expansion_permitted
+    ):
         mock_recursive_expansion_permitted.return_value = False
 
         with self.assertRaises(serializers.ValidationError):
             FlexFieldsModelSerializer(
                 context={
                     "request": MockRequest(
-                        method="GET", query_params=MultiValueDict({"expand": ["dog.leg.dog"]})
+                        method="GET",
+                        query_params=MultiValueDict({"expand": ["dog.leg.dog"]}),
                     )
                 }
             )
@@ -214,43 +221,55 @@ class TestFlexFieldModelSerializer(TestCase):
         serializer = FlexFieldsModelSerializer(
             context={
                 "request": MockRequest(
-                    method="GET", query_params=MultiValueDict({"expand": ["dog.leg.paws"]})
+                    method="GET",
+                    query_params=MultiValueDict({"expand": ["dog.leg.paws"]}),
                 )
             }
         )
         self.assertEqual(serializer._flex_options_all["expand"], ["dog.leg.paws"])
 
-    @override_settings(REST_FLEX_FIELDS={"MAXIMUM_EXPANSION_DEPTH": 2})
+    @patch("rest_flex_fields.serializers.MAXIMUM_EXPANSION_DEPTH", 2)
     def test_expansion_depth_exception(self):
         with self.assertRaises(serializers.ValidationError):
             FlexFieldsModelSerializer(
                 context={
                     "request": MockRequest(
-                        method="GET", query_params=MultiValueDict({"expand": ["dog.leg.paws"]})
+                        method="GET",
+                        query_params=MultiValueDict({"expand": ["dog.leg.paws"]}),
                     )
                 }
             )
 
-    @patch('rest_flex_fields.FlexFieldsModelSerializer.maximum_expansion_depth', new_callable=PropertyMock)
+    @patch(
+        "rest_flex_fields.FlexFieldsModelSerializer.maximum_expansion_depth",
+        new_callable=PropertyMock,
+    )
     def test_expansion_depth_serializer_level(self, mock_maximum_expansion_depth):
         mock_maximum_expansion_depth.return_value = 3
         serializer = FlexFieldsModelSerializer(
             context={
                 "request": MockRequest(
-                    method="GET", query_params=MultiValueDict({"expand": ["dog.leg.paws"]})
+                    method="GET",
+                    query_params=MultiValueDict({"expand": ["dog.leg.paws"]}),
                 )
             }
         )
         self.assertEqual(serializer._flex_options_all["expand"], ["dog.leg.paws"])
 
-    @patch('rest_flex_fields.FlexFieldsModelSerializer.maximum_expansion_depth', new_callable=PropertyMock)
-    def test_expansion_depth_serializer_level_exception(self, mock_maximum_expansion_depth):
+    @patch(
+        "rest_flex_fields.FlexFieldsModelSerializer.maximum_expansion_depth",
+        new_callable=PropertyMock,
+    )
+    def test_expansion_depth_serializer_level_exception(
+        self, mock_maximum_expansion_depth
+    ):
         mock_maximum_expansion_depth.return_value = 2
         with self.assertRaises(serializers.ValidationError):
             FlexFieldsModelSerializer(
                 context={
                     "request": MockRequest(
-                        method="GET", query_params=MultiValueDict({"expand": ["dog.leg.paws"]})
+                        method="GET",
+                        query_params=MultiValueDict({"expand": ["dog.leg.paws"]}),
                     )
                 }
             )

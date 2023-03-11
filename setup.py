@@ -24,7 +24,7 @@ classifiers = [
 ]
 setup(
     name="drf-flex-fields",
-    version="1.0.1",
+    version="1.0.2",
     description="Flexible, dynamic fields and nested resources for Django REST Framework serializers.",
     author="Robert Singer",
     author_email="robertgsinger@gmail.com",

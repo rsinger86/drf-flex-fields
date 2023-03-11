@@ -486,7 +486,7 @@ Parameter names and wildcard values can be configured within a Django setting, n
 | Option                        |                                                                                                                                                                                                                                                                         Description                                                                                                                                                                                                                                                                          | Default         |
 |-------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|-----------------|
 | EXPAND_PARAM                  |                                                                                                                                                                                                                                                   The name of the parameter with the fields to be expanded                                                                                                                                                                                                                                                   | `"expand"`      |
-| MAXIMUM_EXPANSION_DEPTH       |                                                                                                                                                                                                                                                       The number of maximum depth permitted expansion                                                                                                                                                                                                                                                        | `None`          |
+| MAXIMUM_EXPANSION_DEPTH       |                                                                                                                                                                                                                                                      The max allowed expansion depth. By default it's unlimited. Expanding `state.towns` would equal a depth of 2                                                                                                                                                                                                                                            | `None`          |
 | FIELDS_PARAM                  |                                                                                                                                                                                                                                      The name of the parameter with the fields to be included (others will be omitted)                                                                                                                                                                                                                                       | `"fields"`      |
 | OMIT_PARAM                    |                                                                                                                                                                                                                                                   The name of the parameter with the fields to be omitted                                                                                                                                                                                                                                                    | `"omit"`        |
 | RECURSIVE_EXPANSION_PERMITTED |                                                                                                                                                                                                                                             If `False`, an exception is raised when a recursive pattern is found                                                                                                                                                                                                                                             | `True`          |
@@ -498,13 +498,13 @@ For example, if you want your API to work a bit more like [JSON API](https://jso
 REST_FLEX_FIELDS = {"EXPAND_PARAM": "include"}
 ```
 
-### Defining expansion and recursive limits at serializer level
+### Defining Expansion and Recursive Limits on Serializer Classes
 
-`maximum_expansion_depth` property can be overridden at serializer level. It can be configured as `int` or `None`.
+A `maximum_expansion_depth` integer property can be set on a serializer class.
 
-`recursive_expansion_permitted` property can be overridden at serializer level. It must be `bool`.
+`recursive_expansion_permitted` boolean property can be set on a serializer class.
 
-Both settings raise `serializers.ValidationError` when conditions are met but exceptions can be overridden in `_recursive_expansion_found` and `_expansion_depth_exceeded` methods. 
+Both settings raise `serializers.ValidationError` when conditions are met but exceptions can be customized by overriding the `recursive_expansion_not_permitted` and `expansion_depth_exceeded` methods. 
 
 
 ## Serializer Introspection
@@ -583,6 +583,10 @@ It will automatically call `select_related` and `prefetch_related` on the curren
 **WARNING:** The optimization currently works only for one nesting level.
 
 # Changelog <a id="changelog"></a>
+
+## 1.0.2 (March 2023)
+
+- Adds control over whether recursive expansions are allowed and allows setting the max expansion depth. Thanks @andruten!
 
 ## 1.0.1 (March 2023)
 

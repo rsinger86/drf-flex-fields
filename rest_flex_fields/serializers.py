@@ -2,7 +2,6 @@ import copy
 import importlib
 from typing import List, Optional, Tuple
 
-from django.conf import settings
 from rest_framework import serializers
 
 from rest_flex_fields import (
@@ -10,6 +9,8 @@ from rest_flex_fields import (
     FIELDS_PARAM,
     OMIT_PARAM,
     WILDCARD_VALUES,
+    MAXIMUM_EXPANSION_DEPTH,
+    RECURSIVE_EXPANSION_PERMITTED,
     split_levels,
 )
 
@@ -65,7 +66,7 @@ class FlexFieldsSerializerMixin(object):
         """
         Defined at serializer level or based on MAXIMUM_EXPANSION_DEPTH setting
         """
-        return self.maximum_expansion_depth or settings.REST_FLEX_FIELDS.get("MAXIMUM_EXPANSION_DEPTH", None)
+        return self.maximum_expansion_depth or MAXIMUM_EXPANSION_DEPTH
 
     def get_recursive_expansion_permitted(self) -> bool:
         """
@@ -74,7 +75,7 @@ class FlexFieldsSerializerMixin(object):
         if self.recursive_expansion_permitted is not None:
             return self.recursive_expansion_permitted
         else:
-            return settings.REST_FLEX_FIELDS.get("RECURSIVE_EXPANSION_PERMITTED", True)
+            return RECURSIVE_EXPANSION_PERMITTED
 
     def to_representation(self, instance):
         if not self._flex_fields_rep_applied:
@@ -280,19 +281,19 @@ class FlexFieldsSerializerMixin(object):
         values = self.context["request"].query_params.getlist(field)
 
         if not values:
-            values = self.context["request"].query_params.getlist("{}[]".format(field))
+            values = self.context["request"].query_params.getlist(f"{field}[]")
+
+        if values and len(values) == 1:
+            values = values[0].split(",")
 
         for expand_path in values:
             self._validate_recursive_expansion(expand_path)
             self._validate_expansion_depth(expand_path)
 
-        if values and len(values) == 1:
-            return values[0].split(",")
-
         return values or []
 
     def _split_expand_field(self, expand_path: str) -> List[str]:
-        return expand_path.split('.')
+        return expand_path.split(".")
 
     def recursive_expansion_not_permitted(self):
         """
