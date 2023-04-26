@@ -1,3 +1,5 @@
+import itertools
+from collections.abc import Sequence
 from functools import lru_cache
 from typing import Optional
 
@@ -9,6 +11,7 @@ from rest_framework.filters import BaseFilterBackend
 from rest_framework.request import Request
 from rest_framework.viewsets import GenericViewSet
 
+from rest_flex_fields.utils import get_model_from_dot_path
 from rest_flex_fields import (
     FIELDS_PARAM,
     EXPAND_PARAM,
@@ -47,9 +50,19 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
         expand_list = []
         while expandable_fields:
             key, cls = expandable_fields.pop()
-            cls = cls[0] if hasattr(cls, '__iter__') else cls
+            cls = cls[0] if isinstance(cls, Sequence) else cls
 
+            try:
+                cls = get_model_from_dot_path(cls) if isinstance(cls, str) else cls
+            except (ValueError, AttributeError):
+                pass
+
+            skip_next_level = key.rsplit('.', 1)[-1] in list(itertools.chain.from_iterable([i.split('.') for i in expand_list]))
             expand_list.append(key)
+
+            # Skip node, already visited
+            if skip_next_level:
+                continue
 
             if hasattr(cls, "Meta") and issubclass(cls, FlexFieldsSerializerMixin) and hasattr(cls.Meta, "expandable_fields"):
                 next_layer = getattr(cls.Meta, 'expandable_fields')
