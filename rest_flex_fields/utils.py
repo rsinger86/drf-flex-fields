@@ -1,4 +1,8 @@
+import logging
+import importlib
 from collections.abc import Iterable
+from django.db.models import Model
+from typing import Optional
 
 from rest_flex_fields import EXPAND_PARAM, FIELDS_PARAM, OMIT_PARAM, WILDCARD_VALUES
 
@@ -72,3 +76,12 @@ def split_levels(fields):
 
     first_level_fields = list(set(first_level_fields))
     return first_level_fields, next_level_fields
+
+
+def get_model_from_dot_path(dot_path: str) -> Optional[Model]:
+    """Given a dot path such as 'testapp.models.Person', return the model class."""
+    module_path, attribute_name = dot_path.rsplit('.', 1)
+    module = importlib.import_module(module_path)
+    model = getattr(module, attribute_name)
+
+    return model
