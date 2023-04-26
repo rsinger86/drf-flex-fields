@@ -240,12 +240,18 @@ class FlexFieldsFilterBackend(FlexFieldsDocsFilterBackend):
 
             queryset = queryset.prefetch_related(*(
                 model_field.name for model_field in nested_model_fields if
-                (model_field.is_relation and not model_field.many_to_one) or
-                (model_field.is_relation and model_field.many_to_one and not model_field.concrete)  # Include GenericForeignKey)
+                (
+                    (model_field.is_relation and not model_field.many_to_one) or
+                    (model_field.is_relation and model_field.many_to_one and not model_field.concrete)  # Include GenericForeignKey)
+                ) and
+                    (model_field.name not in self._get_prefetches_ignores())
                 )
             )
 
         return queryset
+
+    def _get_prefetches_ignores(self):
+        return []
 
     @staticmethod
     @lru_cache()
