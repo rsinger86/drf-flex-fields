@@ -69,8 +69,8 @@ Installation
 Requirements
 ============
 
--  Python >= 2.7
--  Django >= 1.8
+-  Python = 3.8 & 3.9
+-  Django >= 3.2
 
 Basics
 ======
