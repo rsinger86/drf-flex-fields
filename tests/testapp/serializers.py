@@ -30,6 +30,14 @@ class EventSerializer(FlexFieldsSerializerMixin, serializers.Serializer):
     city = serializers.CharField()
     tickets = serializers.CharField()
 
+    class Meta:
+        expandable_fields = {
+            "city": serializers.SerializerMethodField
+        }
+    
+    def get_city(self, value):
+        return { "name": value }
+
 
 class CountrySerializer(FlexFieldsModelSerializer):
     events = FlexSerializerMethodField()

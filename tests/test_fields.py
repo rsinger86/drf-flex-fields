@@ -19,7 +19,7 @@ class TestFlexSerializerMethodField(TestCase):
         self.url = reverse("country-events-list")
         return super().setUp()
 
-    def test_filtering_events_fields(self):
+    def test_base_request(self):
         r = self.client.get(self.url)
 
         self.assertListEqual(
@@ -53,6 +53,35 @@ class TestFlexSerializerMethodField(TestCase):
             ]
         )
 
+    def test_omit_arg(self):
+        r = self.client.get(self.url+"?omit=name,events.tickets")
+        self.assertListEqual(
+            r.json(),
+            [
+                {
+                    "events": [
+                        {
+                            "name": "Wacken Open Air",
+                            "city": "Wacken",
+                        },
+                        {
+                            "name": "Full Force",
+                            "city": "Grafenhainichen",
+                        }
+                    ]
+                },
+                {
+                    "events": [
+                        {
+                            "name": "Resurrection",
+                            "city": "Viveiro",
+                        }
+                    ]
+                }
+            ]
+        )
+
+    def test_fields_arg(self):
         r = self.client.get(self.url+"?fields=name,events.name")
         self.assertListEqual(
             r.json(),
@@ -79,20 +108,27 @@ class TestFlexSerializerMethodField(TestCase):
             ]
         )
 
-        r = self.client.get(self.url+"?omit=events.tickets")
+    def test_expand_arg(self):
+        r = self.client.get(self.url+"?expand=events.city")
         self.assertListEqual(
             r.json(),
-            [
+                [
                 {
                     "name": "Germany",
                     "events": [
                         {
                             "name": "Wacken Open Air",
-                            "city": "Wacken",
+                            "city": {
+                                "name": "Wacken",
+                            },
+                            "tickets": "www.example.com/wacken"
                         },
                         {
                             "name": "Full Force",
-                            "city": "Grafenhainichen",
+                            "city": {
+                                "name": "Grafenhainichen",
+                            },
+                            "tickets": "www.example.com/full_force"
                         }
                     ]
                 },
@@ -101,9 +137,13 @@ class TestFlexSerializerMethodField(TestCase):
                     "events": [
                         {
                             "name": "Resurrection",
-                            "city": "Viveiro",
+                            "city":  {
+                                "name": "Viveiro",
+                            },
+                            "tickets": "www.example.com/resurrection"
                         }
                     ]
                 }
             ]
         )
+
