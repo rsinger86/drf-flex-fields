@@ -35,18 +35,20 @@ class EventSerializer(FlexFieldsSerializerMixin, serializers.Serializer):
             "city": serializers.SerializerMethodField
         }
     
-    def get_city(self, value):
-        return { "name": value }
+    def get_city(self, obj):
+        return { "name": obj["city"] }
 
 
 class CountrySerializer(FlexFieldsModelSerializer):
-    events = FlexSerializerMethodField()
     
     class Meta:
         model = Country
-        fields = ['name', 'events']
+        fields = ['name']
+        expandable_fields = {
+            "events": FlexSerializerMethodField
+        }
 
-    def get_events(self, obj, expand, omit, fields):
+    def get_events(self, obj, fields, expand, omit):
         events = get_event_list(country=obj)
         return EventSerializer(events, many=True, expand=expand, omit=omit, fields=fields).data
 

@@ -27,34 +27,15 @@ class TestFlexSerializerMethodField(TestCase):
             [
                 {
                     "name": "Germany",
-                    "events": [
-                        {
-                            "name": "Wacken Open Air",
-                            "city": "Wacken",
-                            "tickets": "www.example.com/wacken"
-                        },
-                        {
-                            "name": "Full Force",
-                            "city": "Grafenhainichen",
-                            "tickets": "www.example.com/full_force"
-                        }
-                    ]
                 },
                 {
                     "name": "Spain",
-                    "events": [
-                        {
-                            "name": "Resurrection",
-                            "city": "Viveiro",
-                            "tickets": "www.example.com/resurrection"
-                        }
-                    ]
                 }
             ]
         )
 
     def test_omit_arg(self):
-        r = self.client.get(self.url+"?omit=name,events.tickets")
+        r = self.client.get(self.url+"?omit=name,events.tickets&expand=events")
         self.assertListEqual(
             r.json(),
             [
@@ -82,7 +63,7 @@ class TestFlexSerializerMethodField(TestCase):
         )
 
     def test_fields_arg(self):
-        r = self.client.get(self.url+"?fields=name,events.name")
+        r = self.client.get(self.url+"?fields=name,events.name&expand=events")
         self.assertListEqual(
             r.json(),
             [
