@@ -439,10 +439,10 @@ from rest_flex_fields.serializers import FlexFieldsModelSerializer, FlexFieldsSe
 from rest_flex_fields.fields import FlexSerializerMethodField
 
 
-class EventSerializer(serializers.Serializer, FlexFieldsSerializerMixin):
-    class Meta:
-        model = Event
-        fields = ["name", "city", "tickets"]
+class EventSerializer(FlexFieldsSerializerMixin, serializers.Serializer):
+    name = serializers.CharField()
+    city = serializers.CharField()
+    tickets = serializers.CharField()
 
 class CountrySerializer(FlexFieldsModelSerializer):
     events = FlexSerializerMethodField()

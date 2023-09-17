@@ -25,9 +25,10 @@ class PetStoreSerializer(serializers.ModelSerializer):
         fields = ["id", "name"]
 
 
-class EventSerializer(serializers.Serializer, FlexFieldsSerializerMixin):
-    class Meta:
-        fields = ["name", "city", "tickets"]
+class EventSerializer(FlexFieldsSerializerMixin, serializers.Serializer):
+    name = serializers.CharField()
+    city = serializers.CharField()
+    tickets = serializers.CharField()
 
 
 class CountrySerializer(FlexFieldsModelSerializer):
