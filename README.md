@@ -429,6 +429,138 @@ print(serializer.data)
 }
 ```
 
+## Serializer Method Fields
+
+If you want support for nested `expand`, `omit` and `fields` query args in `SerializerMethodField` fields, use `FlexSerializerMethodField`. This can be usefull for serializing iterables that are not related to your original model. For example:
+
+```python
+from rest_framework import serializers
+from rest_flex_fields.serializers import FlexFieldsModelSerializer, FlexFieldsSerializerMixin
+from rest_flex_fields.fields import FlexSerializerMethodField
+
+
+class EventSerializer(FlexFieldsSerializerMixin, serializers.Serializer):
+    name = serializers.CharField()
+    city = serializers.CharField()
+    tickets = serializers.CharField()
+
+    class Meta:
+        expandable_fields = {
+            "city": serializers.SerializerMethodField
+        }
+
+    def get_city(self, obj):
+        return { "name": obj["city"] }
+
+
+class CountrySerializer(FlexFieldsModelSerializer):
+
+    class Meta:
+        model = Country
+        fields = ['name']
+        expandable_fields = {
+            "events": FlexSerializerMethodField
+        }
+
+    def get_events(self, obj, fields, expand, omit):
+        events = get_event_list(country=obj)
+        return EventSerializer(events, many=True, expand=expand, omit=omit, fields=fields).data
+
+```
+
+Default expand `GET /countries?expand=events`:
+
+```json
+[
+  {
+    "name": "Germany",
+    "events": [
+      {
+        "name": "Wacken Open Air",
+        "city": "Wacken",
+        "tickets": "www.example.com/wacken"
+      },
+      {
+        "name": "Full Force",
+        "city": "Grafenhainichen",
+        "tickets": "www.example.com/full_force"
+      }
+    ]
+  },
+  {
+    "name": "Spain",
+    "events": [
+      {
+        "name": "Resurrection",
+        "city": "Viveiro",
+        "tickets": "www.example.com/resurrection"
+      }
+    ]
+  }
+]
+```
+
+You can then use query args to filter the `events` fields. `GET /country_events?expand=events&fields=name,events.name`:
+
+```json
+[
+  {
+    "name": "Germany",
+    "events": [
+      {
+        "name": "Wacken Open Air"
+      },
+      {
+        "name": "Full Force"
+      }
+    ]
+  },
+  {
+    "name": "Spain",
+    "events": [
+      {
+        "name": "Resurrection"
+      }
+    ]
+  }
+]
+```
+
+`omit` and `expand` also work, `GET /country_events?expand=events,events.city&omit=events.name`:
+
+```json
+[
+  {
+    "name": "Germany",
+    "events": [
+      {
+        "city": {
+          "name": "Wacken"
+        },
+        "tickets": "www.example.com/wacken"
+      },
+      {
+        "city": {
+          "name": "Grafenhainichen"
+        },
+        "tickets": "www.example.com/full_force"
+      }
+    ]
+  },
+  {
+    "name": "Spain",
+    "events": [
+      {
+        "city": {
+          "name": "Viveiro"
+        },
+        "tickets": "www.example.com/resurrection"
+      }
+    ]
+  }
+]
+```
+
 # Serializer Options
 
 Dynamic field options can be passed in the following ways:
@@ -484,9 +616,9 @@ class PersonSerializer(FlexFieldsModelSerializer):
 Parameter names and wildcard values can be configured within a Django setting, named `REST_FLEX_FIELDS`.
 
 | Option                        |                                                                                                                                                                                                                                                                         Description                                                                                                                                                                                                                                                                          | Default         |
-|-------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|-----------------|
+| ----------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | --------------- |
 | EXPAND_PARAM                  |                                                                                                                                                                                                                                                   The name of the parameter with the fields to be expanded                                                                                                                                                                                                                                                   | `"expand"`      |
-| MAXIMUM_EXPANSION_DEPTH       |                                                                                                                                                                                                                                                      The max allowed expansion depth. By default it's unlimited. Expanding `state.towns` would equal a depth of 2                                                                                                                                                                                                                                            | `None`          |
+| MAXIMUM_EXPANSION_DEPTH       |                                                                                                                                                                                                                         The max allowed expansion depth. By default it's unlimited. Expanding `state.towns` would equal a depth of 2                                                                                                                                                                                                                         | `None`          |
 | FIELDS_PARAM                  |                                                                                                                                                                                                                                      The name of the parameter with the fields to be included (others will be omitted)                                                                                                                                                                                                                                       | `"fields"`      |
 | OMIT_PARAM                    |                                                                                                                                                                                                                                                   The name of the parameter with the fields to be omitted                                                                                                                                                                                                                                                    | `"omit"`        |
 | RECURSIVE_EXPANSION_PERMITTED |                                                                                                                                                                                                                                             If `False`, an exception is raised when a recursive pattern is found                                                                                                                                                                                                                                             | `True`          |
@@ -504,8 +636,7 @@ A `maximum_expansion_depth` integer property can be set on a serializer class.
 
 `recursive_expansion_permitted` boolean property can be set on a serializer class.
 
-Both settings raise `serializers.ValidationError` when conditions are met but exceptions can be customized by overriding the `recursive_expansion_not_permitted` and `expansion_depth_exceeded` methods. 
-
+Both settings raise `serializers.ValidationError` when conditions are met but exceptions can be customized by overriding the `recursive_expansion_not_permitted` and `expansion_depth_exceeded` methods.
 
 ## Serializer Introspection
 
@@ -583,6 +714,10 @@ It will automatically call `select_related` and `prefetch_related` on the curren
 **WARNING:** The optimization currently works only for one nesting level.
 
 # Changelog <a id="changelog"></a>
+
+## Unreleased
+
+- Adds `FlexSerializerMethodField`.
 
 ## 1.0.2 (March 2023)
 

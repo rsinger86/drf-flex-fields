@@ -13,6 +13,7 @@ from rest_flex_fields import (
     RECURSIVE_EXPANSION_PERMITTED,
     split_levels,
 )
+from .fields import FlexSerializerMethodField
 
 
 class FlexFieldsSerializerMixin(object):
@@ -132,8 +133,9 @@ class FlexFieldsSerializerMixin(object):
         if issubclass(serializer_class, serializers.Serializer):
             settings["context"] = self.context
 
-        if issubclass(serializer_class, FlexFieldsSerializerMixin):
-            settings["parent"] = self
+        if issubclass(serializer_class, (FlexFieldsSerializerMixin, FlexSerializerMethodField)):
+            if issubclass(serializer_class, FlexFieldsSerializerMixin):
+                settings["parent"] = self
 
             if name in nested_expand:
                 settings[EXPAND_PARAM] = nested_expand[name]

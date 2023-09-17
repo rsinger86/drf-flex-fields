@@ -1,9 +1,10 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from rest_flex_fields import FlexFieldsModelSerializer
-from tests.testapp.models import Pet, PetStore, Person, Company, TaggedItem
-
+from rest_flex_fields.serializers import FlexFieldsModelSerializer, FlexFieldsSerializerMixin
+from rest_flex_fields.fields import FlexSerializerMethodField
+from tests.testapp.models import Pet, PetStore, Person, Company, TaggedItem, Country
+from tests.testapp.utils import get_event_list
 
 class CompanySerializer(FlexFieldsModelSerializer):
     class Meta:
@@ -22,6 +23,34 @@ class PetStoreSerializer(serializers.ModelSerializer):
     class Meta:
         model = PetStore
         fields = ["id", "name"]
+
+
+class EventSerializer(FlexFieldsSerializerMixin, serializers.Serializer):
+    name = serializers.CharField()
+    city = serializers.CharField()
+    tickets = serializers.CharField()
+
+    class Meta:
+        expandable_fields = {
+            "city": serializers.SerializerMethodField
+        }
+    
+    def get_city(self, obj):
+        return { "name": obj["city"] }
+
+
+class CountrySerializer(FlexFieldsModelSerializer):
+    
+    class Meta:
+        model = Country
+        fields = ['name']
+        expandable_fields = {
+            "events": FlexSerializerMethodField
+        }
+
+    def get_events(self, obj, fields, expand, omit):
+        events = get_event_list(country=obj)
+        return EventSerializer(events, many=True, expand=expand, omit=omit, fields=fields).data
 
 
 class PetSerializer(FlexFieldsModelSerializer):
@@ -45,7 +74,11 @@ class PetSerializer(FlexFieldsModelSerializer):
         if obj.name == "Garfield":
             return "homemade lasanga"
         return "pet food"
-
+    
+    def get_info(self, obj, expand, fields, omit):
+        {
+            "is_vegetarian": obj.diet
+        }
 
 class TaggedItemSerializer(FlexFieldsModelSerializer):
     content_object = PrimaryKeyRelatedField(read_only=True)
