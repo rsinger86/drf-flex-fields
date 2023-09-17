@@ -444,19 +444,31 @@ class EventSerializer(FlexFieldsSerializerMixin, serializers.Serializer):
     city = serializers.CharField()
     tickets = serializers.CharField()
 
+    class Meta:
+        expandable_fields = {
+            "city": serializers.SerializerMethodField
+        }
+
+    def get_city(self, obj):
+        return { "name": obj["city"] }
+
+
 class CountrySerializer(FlexFieldsModelSerializer):
-    events = FlexSerializerMethodField()
 
     class Meta:
         model = Country
-        fields = ['name', 'events']
+        fields = ['name']
+        expandable_fields = {
+            "events": FlexSerializerMethodField
+        }
 
-    def get_events(self, obj, expand, omit, fields):
-        events = get_event_list(country=obj) # get events from some external api or something like that
+    def get_events(self, obj, fields, expand, omit):
+        events = get_event_list(country=obj)
         return EventSerializer(events, many=True, expand=expand, omit=omit, fields=fields).data
+
 ```
 
-Default `GET /country_events`:
+Default expand `GET /countries?expand=events`:
 
 ```json
 [
@@ -488,7 +500,7 @@ Default `GET /country_events`:
 ]
 ```
 
-You can then use query args to filter the `events` fields. `GET /country_events?fields=name,events.name`:
+You can then use query args to filter the `events` fields. `GET /country_events?expand=events&fields=name,events.name`:
 
 ```json
 [
@@ -508,6 +520,41 @@ You can then use query args to filter the `events` fields. `GET /country_events?
     "events": [
       {
         "name": "Resurrection"
+      }
+    ]
+  }
+]
+```
+
+`omit` and `expand` also work, `GET /country_events?expand=events,events.city&omit=events.name`:
+
+```json
+[
+  {
+    "name": "Germany",
+    "events": [
+      {
+        "city": {
+          "name": "Wacken"
+        },
+        "tickets": "www.example.com/wacken"
+      },
+      {
+        "city": {
+          "name": "Grafenhainichen"
+        },
+        "tickets": "www.example.com/full_force"
+      }
+    ]
+  },
+  {
+    "name": "Spain",
+    "events": [
+      {
+        "city": {
+          "name": "Viveiro"
+        },
+        "tickets": "www.example.com/resurrection"
       }
     ]
   }
