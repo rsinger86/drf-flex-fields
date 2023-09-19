@@ -2,7 +2,9 @@ import copy
 import importlib
 from typing import List, Optional, Tuple
 
+from django.http.request import HttpRequest
 from rest_framework import serializers
+from rest_framework.request import Request
 
 from rest_flex_fields import (
     EXPAND_PARAM,
@@ -277,6 +279,10 @@ class FlexFieldsSerializerMixin(object):
 
         if not hasattr(self, "context") or not self.context.get("request"):
             return []
+
+        # Convert to drf Request
+        if isinstance(self.context['request'], HttpRequest):
+            self.context["request"] = Request(self.context["request"])
 
         values = self.context["request"].query_params.getlist(field)
 
