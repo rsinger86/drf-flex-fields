@@ -280,7 +280,6 @@ class FlexFieldsSerializerMixin(object):
         if not hasattr(self, "context") or not self.context.get("request"):
             return []
 
-        # Convert to drf Request
         if isinstance(self.context['request'], HttpRequest):
             self.context["request"] = Request(self.context["request"])
 

@@ -1,5 +1,8 @@
 from collections.abc import Iterable
 
+from django.http.request import HttpRequest
+from rest_framework.request import Request
+
 from rest_flex_fields import EXPAND_PARAM, FIELDS_PARAM, OMIT_PARAM, WILDCARD_VALUES
 
 
@@ -7,6 +10,9 @@ def is_expanded(request, field: str) -> bool:
     """ Examines request object to return boolean of whether
         passed field is expanded.
     """
+    if isinstance(request, HttpRequest):
+        request = Request(request)
+
     expand_value = request.query_params.get(EXPAND_PARAM)
     expand_fields = []
 
@@ -23,6 +29,9 @@ def is_included(request, field: str) -> bool:
         set, and it is not among them, or because `omit` is set and
         it is among them.
     """
+    if isinstance(request, HttpRequest):
+        request = Request(request)
+
     sparse_value = request.query_params.get(FIELDS_PARAM)
     omit_value = request.query_params.get(OMIT_PARAM)
     sparse_fields, omit_fields = [], []
