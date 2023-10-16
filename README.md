@@ -531,7 +531,7 @@ You may be wondering how things work if you use both the `expand` and `fields` o
 }
 ```
 
-However, you make the following request `HTTP GET /person/13322?include=id,name&expand=country`. You will get the following back:
+However, you make the following request `HTTP GET /person/13322?fields=id,name&expand=country`. You will get the following back:
 
 ```json
 {
